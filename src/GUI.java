@@ -259,10 +259,12 @@ public class GUI extends JPanel implements ActionListener {
             if(onLine.getText().equals("ON")) {
                 onLine.setText("   ");
                 offLine.setText("OFF");
+                main.setOffLine();
             } else {
                 color = new Color(0,220,50);
                 onLine.setText("ON");
                 offLine.setText("   ");
+                main.setOnLine();
             }
             onlineMenu.setBackground(color);
             offLine.setBackground(color);

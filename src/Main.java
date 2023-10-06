@@ -4,6 +4,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -13,6 +18,8 @@ import javax.swing.Timer;
 public class Main extends JFrame{
 
     // General
+    private Socket socket;
+    private DataOutputStream sortie;
     private GUI gui;
     private Matrix matrix;
     private boolean[][] cases; // Matrix's cases
@@ -24,7 +31,10 @@ public class Main extends JFrame{
     private int casesLeft; // Number of non-mines left
     private int minesLeft; // Number of mines left
     private int seconds = 0; // Timer
+
+    // Online mode
     private String pseudo = "";
+    List<String> players = new ArrayList<String>();
 
     public static void main(String[] args) {if (args.length > 0) new Main(args[0]);else new Main("");}
     Main(String s) {
@@ -37,6 +47,30 @@ public class Main extends JFrame{
         addComponentListener(new ComponentAdapter() {public void componentResized(ComponentEvent componentEvent) {gui.redimension(getSize(), currentLevel);}});
         setParameters(true); // Set default options
     }
+
+    /**
+     * **************** *
+     * SERVER FUNCTIONS *
+     * **************** *
+    **/
+
+    void setOnLine() {
+        try {
+            // ouverture de la socket et des streams
+            socket = new Socket("LOCALHOST",10000);
+            sortie = new DataOutputStream(socket.getOutputStream());
+            // Create listening thread
+            Runnable r = new ThreadClient(socket, this);
+            new Thread(r).start();
+        } catch (IOException e) {
+                e.printStackTrace();
+        }
+    }
+
+    void setOffLine() {}
+
+    void broadCastString(String txt){try{sortie.writeUTF(txt);}catch(IOException e){e.printStackTrace();}}
+    void broadCastInt(int value){try{sortie.writeInt(value);}catch(IOException e){e.printStackTrace();}}
 
     /**
      * **************** *
@@ -174,6 +208,10 @@ public class Main extends JFrame{
     public void setPseudo(String txt) {this.pseudo = txt;}
 
     public boolean getAuthorizedClick() {return this.authorizedClick;}
+
+    public void addPlayer(String txt) {this.players.add(txt);}
+    public boolean containsPlayer(String txt) {return this.players.contains(txt);}
+    public void removePlayer(String txt) {this.players.remove(txt);}
 
     public int getDimX() {return this.matrix.getDimX();}
     public int getDimY() {return this.matrix.getDimY();}
