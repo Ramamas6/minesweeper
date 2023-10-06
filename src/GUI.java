@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class GUI extends JPanel implements ActionListener {
+
+    
     // Main panels
     private JPanel titlePanel;
     private JPanel matrixPanel;
@@ -15,8 +17,7 @@ public class GUI extends JPanel implements ActionListener {
     private JPanel bottomPanel;
 
     // Objects
-    private Matrix matrix; // Matrix
-    private boolean[][] cases; // Matrix's cases
+    //private boolean[][] cases; // Matrix's cases
     private Main main; // Main object
     private Case[][] grille; // Array of Case
 
@@ -27,20 +28,18 @@ public class GUI extends JPanel implements ActionListener {
 
     // Menu variables
     private JMenuBar menuBar; // Main menu
+    private JButton onlineMenu;
+    private JButton onLine;
+    private JButton offLine;
     private JMenu difficultyMenu;
     private List<JMenuItem> difficultiesMenuItem;
     private Level lvls[] = { Level.EASY, Level.MEDIUM, Level.HARD, Level.DIABOLICAL }; // Possible levels
     private JButton newMenu;
 
     // Others variables
-    private int minesLeft; // Number of mines left
-    private int casesLeft; // Number of non-mines left
-    private int seconds; // Timer
-    private boolean authorizedClick = true; // Wether click on cases is othorized
-    private boolean gameStarted = false; // Wether the game is started
-    private Level currentLevel = Level.MEDIUM;
-    private static int DIMX = 1;
-    private static int DIMY = 1;
+    private int DIMX = 1;
+    private int DIMY = 1;
+
 
     // Color
     private Color background = new Color(74, 117, 44);
@@ -56,7 +55,6 @@ public class GUI extends JPanel implements ActionListener {
     GUI(Main main) {
         // Get remote objects
         this.main = main;
-        this.matrix = new Matrix();
         // Create the main panels
         titlePanel = createTitlePanel();
         leftPanel = createLeftPanel();
@@ -73,7 +71,6 @@ public class GUI extends JPanel implements ActionListener {
         matrixPanel = createMatrixPanel();
         add(matrixPanel, BorderLayout.CENTER);
         // Start timer
-        timer();
     }
 
     JPanel createTitlePanel() {
@@ -87,10 +84,17 @@ public class GUI extends JPanel implements ActionListener {
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
+        // Game
         c.gridx = 0;
-        // Pseudo
         c.gridy = 0;
-        JLabel pseudoLabel = new JLabel("Ramamas6");
+        timerLabel = new JLabel("Time : 0");
+        panel.add(timerLabel, c);
+        c.gridy = 1;
+        minesLabel = new JLabel("Mines left: 0");
+        panel.add(minesLabel, c);
+        // Pseudo
+        c.gridy ++;
+        JLabel pseudoLabel = new JLabel("Guest");
         panel.add(pseudoLabel, c);
         // End
         panel.setBackground(background);
@@ -101,15 +105,7 @@ public class GUI extends JPanel implements ActionListener {
         panel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
-        // Stats
         c.gridy = 0;
-        this.seconds = 0;
-        timerLabel = new JLabel("Time : " + String.valueOf(this.seconds));
-        panel.add(timerLabel, c);
-        c.gridy = 1;
-        minesLeft = matrix.getMines();
-        minesLabel = new JLabel("Mines left: " + String.valueOf(minesLeft));
-        panel.add(minesLabel, c);
         // END
         panel.setBackground(background);
         return panel;
@@ -119,15 +115,35 @@ public class GUI extends JPanel implements ActionListener {
         buttonQuit = new JButton("QUIT");
         buttonQuit.addActionListener(this);
         panel.add(buttonQuit);
-        panel.setSize(WIDTH, 200);
         panel.setBackground(background);
         return panel;
     }
     void createMenu() {
         menuBar = new JMenuBar();
-        // On/Off line
-        JMenu onOffLine = new JMenu("Online : off");
-        menuBar.add(onOffLine);
+        // Online menu
+        Color color = new Color(80,80,80);
+        onlineMenu = new JButton("  ONLINE");
+            onlineMenu.setBackground(color);
+            onlineMenu.setBorderPainted(false);
+            onlineMenu.setFocusable(false);
+            onlineMenu.addActionListener(this);
+            onlineMenu.setBorder(BorderFactory.createEmptyBorder());
+            onlineMenu.setMaximumSize(new Dimension(75, 26));
+        menuBar.add(onlineMenu);
+        onLine = new JButton("   ");
+            onLine.setBackground(color);
+            onLine.setBorderPainted(false);
+            onLine.setFocusable(false);
+            onLine.addActionListener(this);
+            onLine.setMaximumSize(new Dimension(58, 26));
+        menuBar.add(onLine);
+        offLine = new JButton("OFF");
+            offLine.setBackground(color);
+            offLine.setBorderPainted(false);
+            offLine.setFocusable(false);
+            offLine.addActionListener(this);
+            offLine.setMaximumSize(new Dimension(58, 26));
+        menuBar.add(offLine);
         menuBar.add(new JLabel(" | "));
         // Difficulty
         difficultyMenu = new JMenu("Difficulty Medium");
@@ -160,19 +176,6 @@ public class GUI extends JPanel implements ActionListener {
         this.main.setJMenuBar(menuBar);
     }
 
-    /**
-     * Start timer
-     */
-    void timer() {
-        ActionListener taskPerformer = new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                if (gameStarted) seconds ++;
-                timerLabel.setText("Time : " + String.valueOf(seconds));
-            }
-        };
-        new Timer(1000, taskPerformer).start();
-    }
-
     /*
      ******************************************************************************
      * 
@@ -187,22 +190,14 @@ public class GUI extends JPanel implements ActionListener {
      */
     void newGame(Level level) {
         remove(matrixPanel); // Remove the main panel from the screen
-        this.seconds = 0;
-        this.currentLevel = level; // Change the level
-        this.gameStarted = false; // Wait for the first click
-        this.authorizedClick = true; // Authorize to click
-        this.matrix.newMatrix(level); // Create a new array in Matrix
-        this.minesLeft = this.matrix.getMines(); // Get number of mines
-        this.minesLabel.setText("Mines left: " + String.valueOf(minesLeft)); // Change panel with number of mines left
         this.matrixPanel = createMatrixPanel(); // Recreate matrix panel
         add(matrixPanel, BorderLayout.CENTER); // Add matrix panel in the screen
-        this.main.setParametersAgain(); // Pack and set screen size
     }
 
     JPanel createMatrixPanel() {
         // Variables creations
-        int dimX = matrix.getDimX();
-        int dimY = matrix.getDimY();
+        int dimX = this.main.getDimX();
+        int dimY = this.main.getDimY();
         grille = new Case[dimX][dimY];
         // Panel creation and configurations
         JPanel panel = new JPanel();
@@ -223,15 +218,15 @@ public class GUI extends JPanel implements ActionListener {
     /**
      * @return optimum screenSize for a difficulty or [0,0] for full size
      */
-    public int[] screenSize() {
-        // Resize all the Case with the maximum size
+    public int[] screenSize(Level level) {
+        // Resize all the Case with the optimal size for square
         Rectangle maxDim = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-        int x = ((int) maxDim.getWidth() - leftPanel.getWidth() - rightPanel.getWidth()) / currentLevel.getDimX();
-        int y = ((int) maxDim.getHeight() - bottomPanel.getHeight() - titlePanel.getHeight() - menuBar.getHeight()) / currentLevel.getDimY();
+        int x = ((int) maxDim.getWidth() - leftPanel.getWidth() - rightPanel.getWidth()) / level.getDimX();
+        int y = ((int) maxDim.getHeight() - bottomPanel.getHeight() - titlePanel.getHeight() - menuBar.getHeight()) / level.getDimY();
         DIMX = Math.min(x,y);
         DIMY = Math.min(x,y);
         Case.RESIZE(DIMX, DIMY);
-        // Return the screen size
+        // Return the screen size for these case size
         int[] ret = new int[2];
         ret[0] = DIMX * grille.length + leftPanel.getWidth() + rightPanel.getWidth(); // Max DIMX
         ret[1] = DIMY * grille[1].length + bottomPanel.getHeight() + titlePanel.getHeight() + menuBar.getHeight(); // Max DIMY
@@ -240,35 +235,6 @@ public class GUI extends JPanel implements ActionListener {
         return ret;
     }
 
-    /**
-     * Start game with a 0 in the first clicked case
-     * @param x coordinate x of the first case
-     * @param y coordinate y of the first case
-     */
-    void startGame(int x, int y) {
-        this.gameStarted = true;
-        // Place mines in Matrix and then in each Case
-        this.matrix.fillRandomly(x, y);
-        this.cases = this.matrix.getCases();
-        for (int i = 0; i < this.matrix.getDimX(); i ++)
-            for (int j = 0; j < this.matrix.getDimY(); j ++)
-                if (cases[i][j]) grille[i][j].setMine();
-        // Compute cases left
-        this.casesLeft = this.matrix.getDimX() * this.matrix.getDimY() - this.matrix.getMines() - 1;
-        // Propagate the first case
-        for (int i = Math.max(0,x-1); i < Math.min(cases.length, x+2);i ++)
-            for (int j = Math.max(0,y-1); j < Math.min(cases[0].length, y+2);j ++)
-                if (this.grille[i][j].getClicked() != 3) this.grille[i][j].leftClick();
-    }
-
-    /**
-     * Called when the game end (to reveal all mines)
-     */
-    void endGame(){
-        for(int i = 0; i < cases.length; i ++)
-            for(int j = 0; j < cases.length; j ++)
-                if(grille[i][j].getClicked() != 3) grille[i][j].reveal(casesLeft == 0);
-    }
 
     /*
      ******************************************************************************
@@ -284,78 +250,66 @@ public class GUI extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         // Quit game
-        if(e.getSource()==buttonQuit) main.quit();
+        if(e.getSource() == buttonQuit) main.quit();
         // New game
-        if(e.getSource()==newMenu) this.newGame(this.currentLevel);
+        else if(e.getSource() == newMenu) main.newGame();
+        // Online mode activated/desactivated
+        else if(e.getSource() == onLine || e.getSource() == offLine || e.getSource() == onlineMenu) {
+            Color color = new Color(80,80,80);
+            if(onLine.getText().equals("ON")) {
+                onLine.setText("   ");
+                offLine.setText("OFF");
+            } else {
+                color = new Color(0,220,50);
+                onLine.setText("ON");
+                offLine.setText("   ");
+            }
+            onlineMenu.setBackground(color);
+            offLine.setBackground(color);
+            onLine.setBackground(color);
+        }
         // New game with different level
-        if(difficultiesMenuItem.contains(e.getSource())) {
+        else if(difficultiesMenuItem.contains(e.getSource())) {
             Level level = lvls[difficultiesMenuItem.indexOf(e.getSource())];
             difficultyMenu.setText("Difficulty " + level.getLevel());
-            this.newGame(level);
+            main.newGame(level);
         }
     }
 
-    public int computeMinesNumber(int x, int y) {return matrix.computeMinesNumber(x, y);}
+    public int computeMinesNumber(int x, int y) {return main.computeMinesNumber(x, y);}
 
-    public boolean getAuthorizedClick() {return this.authorizedClick;}
+    void changeTimer(int seconds) {timerLabel.setText("Time : " + String.valueOf(seconds));}
+
+    /*
+     ***************************************************************************
+     * 
+     ***************************** GETERS / SETERS *****************************
+     * 
+     ***************************************************************************
+    */
+
+    public boolean getAuthorizedClick() {return main.getAuthorizedClick();}
 
     /**
      * Increase or decrease the number of mines left and change the label
      * @param i value to add to the variable minesLeft
      */
-    int changeBombs(int i) {
-        if (minesLeft + i >= 0) {
-            minesLeft += i;
-            minesLabel.setText("Mines left: " + String.valueOf(minesLeft));
-            return minesLeft;
-        }
-        else return -1;
-    }
+    int changeBombs(int i) {return this.main.changeBombs(i);}
+    void changeMinesLabel(int minesLeft) {if(minesLeft >= 0) minesLabel.setText("Mines left: " + String.valueOf(minesLeft));}
 
-    /**
-     * Called when the Case x,y is left clicked
-     * @param x coordinate x of the case
-     * @param y coordinate y of the case
-     */
-    public void isClicked(int x, int y) {
-        // If game not started yet (first click) -> start the game
-        if (!gameStarted) startGame(x, y);
-        // If the game is started
-        else {
-            // If it is not a mine : decrease casesLeft
-            if (!cases[x][y]) casesLeft --;
-            // If the game end now (mine found or all cases discovered) -> final message
-            if (cases[x][y] || casesLeft == 0) {
-                gameStarted = false;
-                String titleMessage = "Game Over";
-                String message = "What do you want to do ?";
-                if (casesLeft == 0) titleMessage = "You win !!!"; // Change the message if it if a victory
-                Object[] options = {"Try again !","Quit...", "Observation"};
-                int res = JOptionPane.showOptionDialog(this.main,
-                    message,titleMessage,
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,     //do not use a custom Icon
-                    options, options[0]);
-                if(res == -1 || res == 2) { authorizedClick = false;endGame();} // Cross or observation -> observation (no click possible)
-                if(res == 0) {this.newGame(this.currentLevel);} // New game
-                if(res == 1) {this.main.quit();} // Quit game
-            }
-            // If the game isn't finished yet and a case 0 is discovered -> propagate
-            else if (this.matrix.computeMinesNumber(x, y) == 0) {
-                for (int i = Math.max(0,x-1); i < Math.min(cases.length, x+2);i ++)
-                    for (int j = Math.max(0,y-1); j < Math.min(cases[0].length, y+2);j ++)
-                        if (this.grille[i][j].getClicked() != 3) this.grille[i][j].leftClick();
-            }
-        }
-    }
+
+    public void isClicked(int x, int y) {this.main.isClicked(x, y);}
+
+    public void leftClick(int i, int j) {if (this.grille[i][j].getClicked() != 3) this.grille[i][j].leftClick();}
+    public void reveal(int i, int j, boolean win) {if(grille[i][j].getClicked() != 3) grille[i][j].reveal(win);}
+    public void setMine(int i, int j) {grille[i][j].setMine();}
 
     /**
      * Resize all the Case to adapt to the screen
      */
-    public void redimension(Dimension size) {
-        int x = ((int) size.getWidth() - leftPanel.getWidth() - rightPanel.getWidth()) / currentLevel.getDimX();
-        int y = ((int) size.getHeight() - bottomPanel.getHeight() - titlePanel.getHeight() - menuBar.getHeight()) / currentLevel.getDimY();
+    public void redimension(Dimension size, Level level) {
+        int x = ((int) size.getWidth() - leftPanel.getWidth() - rightPanel.getWidth()) / level.getDimX();
+        int y = ((int) size.getHeight() - bottomPanel.getHeight() - titlePanel.getHeight() - menuBar.getHeight()) / level.getDimY();
         Case.RESIZE(x, y);
     }
 }

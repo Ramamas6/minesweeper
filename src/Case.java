@@ -14,6 +14,8 @@ public class Case extends JPanel implements MouseListener {
 
     private static int DIMX;
     private static int DIMY;
+    public static void RESIZE(int dimx, int dimy) {DIMX = dimx; DIMY = dimy;}
+
     private String txt = " ";
     private GUI gui;
     private int x;
@@ -31,7 +33,6 @@ public class Case extends JPanel implements MouseListener {
 
     int getClicked(){return this.isClicked;}
     void setMine(){this.isMine = true;}
-    public static void RESIZE(int dimx, int dimy) {DIMX = dimx; DIMY = dimy;}
 
     @Override
     public void paintComponent(Graphics gc) {
@@ -87,8 +88,8 @@ public class Case extends JPanel implements MouseListener {
     }
 
     void leftClick() {
+        if (isClicked == 1) gui.changeBombs(1);
         isClicked = 3; // Discover
-        // Change display
         if (isMine) {
             try {image = ImageIO.read(new File("./assets/explosion.png"));} catch (IOException e) {e.printStackTrace();}
         }
@@ -97,9 +98,7 @@ public class Case extends JPanel implements MouseListener {
             if (n > 0) txt = String.valueOf(n);
             else txt = "";
         }
-        // Repaint
         repaint();
-        // Call clicked function of gui
         gui.isClicked(x, y);
     }
 
@@ -120,14 +119,13 @@ public class Case extends JPanel implements MouseListener {
             isClicked = 0;
             repaint();
         }
-        
     }
 
     @Override
     public void mouseClicked(MouseEvent me) {
         if (this.gui.getAuthorizedClick() && isClicked != 3) {
-            if(me.getButton() == MouseEvent.BUTTON1) {leftClick();}
-            if(me.getButton() == MouseEvent.BUTTON3) {rightClick();}
+            if(me.getButton() == MouseEvent.BUTTON1) {System.out.println("click gauche");leftClick();}
+            if(me.getButton() == MouseEvent.BUTTON3) {System.out.println("click droit");rightClick();}
         }
     }
     @Override

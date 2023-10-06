@@ -89,5 +89,6 @@ public class Matrix {
     int getDimY() {return dimY;} // Return y dimension (for non-squared matrix)
     int getMines() {return nbMines;} // Return number of mines
     boolean[][] getCases() {return cases;} // Return the cases
+    boolean isMine(int i, int j) {return cases[i][j];}
 
 }
