@@ -3,6 +3,7 @@ import java.util.Random;
 
 public class Matrix {
     private boolean [][] cases;
+    private boolean [][] casesDiscovered;
     private int dimX = 10;
     private int dimY = 10;
     private int nbMines = 0;
@@ -75,7 +76,7 @@ public class Matrix {
     }
 
     /**
-     * Restart the matrix for a new game
+     * Restart the matrix for a new offline game
      * @param level : level of the game
      */
     void newMatrix(Level level) {
@@ -84,11 +85,36 @@ public class Matrix {
         this.nbMines = level.getMines();
         this.cases = new boolean[dimX][dimY];
     }
+    /**
+     * Restart the matrix for a new online game
+     * @param level
+     * @param x
+     * @param y
+     */
+    void newMatrix(Level level, int dimx, int dimy, int minesNumber) {
+        this.dimX = dimx;
+        this.dimY = dimy;
+        this.nbMines = minesNumber;
+        this.cases = new boolean[dimX][dimY];
+    }
+    /**
+     * Restart the matrix for the server
+     * @param level : level of the game
+     * @param x position x of the first case
+     * @param y position y of the first case
+     */
+    void newMatrix(Level level, int x, int y) {
+        this.newMatrix(level);
+        this.casesDiscovered = new boolean[this.dimX][this.dimY];
+        this.fillRandomly(x, y);
+    }
 
-    int getDimX() {return dimX;} // Return x dimension (for non-squared matrix)
-    int getDimY() {return dimY;} // Return y dimension (for non-squared matrix)
-    int getMines() {return nbMines;} // Return number of mines
-    boolean[][] getCases() {return cases;} // Return the cases
-    boolean isMine(int i, int j) {return cases[i][j];}
+    public int getDimX() {return this.dimX;} // Return x dimension (for non-squared matrix)
+    public int getDimY() {return this.dimY;} // Return y dimension (for non-squared matrix)
+    public int getMines() {return this.nbMines;} // Return number of mines
+    public boolean[][] getCases() {return this.cases;} // Return the cases
+    public boolean isMine(int i, int j) {return this.cases[i][j];}
+    public boolean isDiscovered(int i, int j) {return this.casesDiscovered[i][j];}
+    public void setDiscovered(int i, int j) {this.casesDiscovered[i][j] = true;}
 
 }

@@ -4,9 +4,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-
 public class ThreadClient implements Runnable {
     private Socket serv; // Communication socket
     private Main main;
@@ -17,20 +14,18 @@ public class ThreadClient implements Runnable {
     }
 
     public void run () {
+        boolean run = true;
         String txt;
         try {
         // Stream creations
         DataInputStream entree = new DataInputStream(serv.getInputStream());
         // Send pseudo
-        JFrame frame = new JFrame();
-        txt = main.getPseudo();
-        if(txt.equals("")) txt = JOptionPane.showInputDialog(frame,"Enter your pseudo:");
-        main.broadCastString(txt);
-        while(entree.readInt() == 0) {
-            txt = JOptionPane.showInputDialog(frame,"Enter your pseudo:");
-            main.broadCastString(txt);
-        }
-        main.setPseudo(txt);
+        txt = this.main.getPseudo();
+        this.main.broadCastString(txt);
+        txt = entree.readUTF();
+        if(!txt.equals("command_ok")) this.main.setPseudo(txt);
+        else {System.out.println("ok");}
+        this.main.passOnline();
         // Get first information
         int nbrPlayers = entree.readInt(); // Number of players currently connected
         if (nbrPlayers > 0) System.out.println(nbrPlayers + " players connected :");
@@ -40,26 +35,85 @@ public class ThreadClient implements Runnable {
             main.addPlayer(txt);
             System.out.println(txt);
         }
-        // Waiting for start game
-        txt = entree.readUTF();
-        while(! txt.equals("command_starting")) {
-            if (txt.equals(main.getPseudo())) {
-                System.out.println("You joined the game as " + txt);
-            }
-            else if(main.containsPlayer(txt)) {
-                main.removePlayer(txt);
-                System.out.println(txt + " left the game...");
-            } else {
-                main.addPlayer(txt);
-                System.out.println(txt + " joined the game !");
-            }
+
+        // IN GAME
+        while(run){
             txt = entree.readUTF();
+            // Quit
+            if(txt.equals("command_quit")) run = false; 
+            // Waiting for start game
+            else if(this.main.getGameState() < 2) {
+                // Case starting game
+                if(txt.equals("command_starting")) {
+                    // Starting game
+                    int dimx = entree.readInt(); // Dimension x
+                    int dimy = entree.readInt(); // Dimension y
+                    int minesNumber = entree.readInt(); // Number of mines
+                    int x = entree.readInt(); // First case x
+                    int y = entree.readInt(); // First case y
+                    this.main.newGame(dimx, dimy, minesNumber);
+                    while(! txt.equals("command_start")) {txt = entree.readUTF();}
+                    this.main.startGame(x, y);
+                }
+                // Case command
+                else if(txt.startsWith("command_")) {
+                    switch (txt) {
+                        case "command_difficulty_easy":
+                            this.main.changeDifficulty(Level.EASY);
+                            break;
+                        case "command_difficulty_medium":
+                            this.main.changeDifficulty(Level.MEDIUM);
+                            break;
+                        case "command_difficulty_hard":
+                            this.main.changeDifficulty(Level.HARD);
+                            break;
+                        case "command_difficulty_diabolical":
+                            this.main.changeDifficulty(Level.DIABOLICAL);
+                            break;
+                    }
+                }
+                // Case player joins/leaves
+                else {
+                    // Case you join
+                    if (txt.equals(main.getPseudo())) {
+                        main.addPlayer(txt);
+                        System.out.println("You joined the game as " + txt);
+                    }
+                    // Case player leaves
+                    else if(main.containsPlayer(txt)) {
+                        main.removePlayer(txt);
+                        System.out.println(txt + " left the game...");
+                    }
+                    // Case player joins
+                    else {
+                        main.addPlayer(txt);
+                        System.out.println(txt + " joined the game !");
+                    }
+                }                       
+            }
+            // In game
+            else if (this.main.getGameState() == 2) {
+                String[] temp = txt.split("_");
+                // CASE CLICKED
+                if(temp[0].equals("case")) {
+                    // temp[1] loses
+                    if(temp[2].equals("loses"))
+                        this.main.loses(temp[1]);
+                    // temp[1] clicked the case temp[2], temp[3] with temp[4] value
+                    else this.main.isClicked(temp[1], Integer.parseInt(temp[2]), Integer.parseInt(temp[3]), Integer.parseInt(temp[4]));
+                }
+                // END GAME
+                else if(temp[0].equals("command") && temp[1].equals("endgame")) {
+                    this.main.broadCastString("command_restart");
+                    this.main.endGame();
+                }
+                // MESSAGE SEND
+                else if(temp[0].equals("message")) {
+                    
+                }
+            }
         }
-        // Starting game
-        int dimx = entree.readInt(); // Dimension x
-        int dimy = entree.readInt(); // Dimension y
-        System.out.println("x: " + dimx + " | y: " + dimy);
-        // End
+        // End : quit
         entree.close();
         serv.close();
         } catch(IOException e){}

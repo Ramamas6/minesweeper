@@ -7,16 +7,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ThreadPlayer implements Runnable {
-    final static int PORT = 10000; // Port
-    private int index;
-    private Socket player; // Communication socket
-    private boolean run = true;
     private static Server server;
+    private Socket player; // Communication socket
+    private int index;
+    private boolean run = true;
+    
 
     private static List<String> players = new ArrayList<String>();
-    public static int number1 = 0; // int to print
+    private static int nbPlayers = 0; // number of players
 
-    private String nomJoueur = "";
+    private String pseudo = "";
+    private boolean alive = true;
     private String command = ""; // Command
 
     ThreadPlayer(Socket socket, int index) {
@@ -32,45 +33,61 @@ public class ThreadPlayer implements Runnable {
         DataInputStream entree = new DataInputStream(player.getInputStream());
         // Add the player
         command = entree.readUTF();
-        while(!command.equals("command_quit") && players.contains(command)){
-            server.broadcastInt(0, index);
-            command = entree.readUTF();
-        }
         if(command.equals("command_quit")) {this.quit();}
-        nomJoueur = command;
-        server.broadcastInt(1, index);
+        else if(players.contains(command)) {
+            int temp = nbPlayers;
+            while(players.contains("Guest" + String.valueOf(temp))) temp ++;
+            server.broadcastString("Guest" + String.valueOf(temp), index);
+            command = "Guest" + String.valueOf(temp);
+        } else server.broadcastString("command_ok", index);
+        pseudo = command;
 
-        System.out.println(nomJoueur+" connected");
-        players.add(nomJoueur);
+        System.out.println(pseudo+" connected");
+        players.add(pseudo);
         // Send connected players
-        server.broadcastInt(number1, index);
-        for(int i = 0; i < number1; i ++) server.broadcastString(players.get(i), index);
+        server.broadcastInt(nbPlayers, index);
+        for(int i = 0; i < nbPlayers; i ++) server.broadcastString(players.get(i), index);
         // Add the new player
-        number1 ++;
-        server.broadcastAllString(nomJoueur);
+        nbPlayers ++;
+        server.broadcastAllString(pseudo);
+        server.broadcastString("command_difficulty_" + server.getDifficulty().getLevel(), this.index);
 
-
+        // Connected to the game
         while(run) {
             command = entree.readUTF();
-            switch (command) {
+            // IN PREPARATION
+            if(server.getState() == 0) switch (command) {
                 case "command_difficulty_easy":
-                    server.changeDifficulty(Level.EASY);
+                    server.setDifficulty(Level.EASY);
                     break;
                 case "command_difficulty_medium":
-                    server.changeDifficulty(Level.MEDIUM);
+                    server.setDifficulty(Level.MEDIUM);
                     break;
                 case "command_difficulty_hard":
-                    server.changeDifficulty(Level.HARD);
+                    server.setDifficulty(Level.HARD);
                     break;
                 case "command_difficulty_diabolical":
-                    server.changeDifficulty(Level.DIABOLICAL);
+                    server.setDifficulty(Level.DIABOLICAL);
                     break;
                 case "command_start_game":
                     server.startGame();
                     break;
+                case "command_quit":
+                    this.quit();
+                    break;
+                case "command_restart":
+                    this.alive = true;
+                    break;
+            }
+            // IN GAME
+            else if(server.getState() == 2) {
+                String[] temp = command.split("_");
+                if(temp[0].equals("case") && this.alive) // Player reveal case temp[1], temp[2]
+                    this.alive = server.caseRevealed(this.pseudo, Integer.parseInt(temp[1]), Integer.parseInt(temp[2]));
+                else if (temp[0].equals("message")) { // Player temp[1] send message temp[2]
+                }     
             }
         }
-
         // End
         entree.close();
         player.close();
@@ -81,11 +98,12 @@ public class ThreadPlayer implements Runnable {
     }
 
     public void quit() {
+        this.run = false;
         server.removeSortie(index);
-        if(!nomJoueur.equals("")) {
-            number1 --;
-            players.remove(players.indexOf(nomJoueur));
-            server.broadcastAllString(nomJoueur);
+        if(!pseudo.equals("")) {
+            nbPlayers --;
+            players.remove(players.indexOf(pseudo));
+            server.broadcastAllString(pseudo);
         }
         try {player.close();} catch(IOException ee){ee.printStackTrace();}
     }

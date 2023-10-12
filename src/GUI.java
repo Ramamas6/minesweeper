@@ -4,7 +4,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class GUI extends JPanel implements ActionListener {
 
@@ -15,6 +17,10 @@ public class GUI extends JPanel implements ActionListener {
     private JPanel leftPanel;
     private JPanel rightPanel;
     private JPanel bottomPanel;
+    private Map<String, JLabel> playersPanel = new HashMap<String, JLabel>();
+    private Map<String, JLabel> scoresPanel = new HashMap<String, JLabel>();
+    private Map<String, JLabel> lifePanel = new HashMap<String, JLabel>();
+    GridBagConstraints cp = new GridBagConstraints();
 
     // Objects
     //private boolean[][] cases; // Matrix's cases
@@ -35,6 +41,8 @@ public class GUI extends JPanel implements ActionListener {
     private List<JMenuItem> difficultiesMenuItem;
     private Level lvls[] = { Level.EASY, Level.MEDIUM, Level.HARD, Level.DIABOLICAL }; // Possible levels
     private JButton newMenu;
+    private JButton iconUser;
+    private JButton menuPseudo;
 
     // Others variables
     private int DIMX = 1;
@@ -83,19 +91,22 @@ public class GUI extends JPanel implements ActionListener {
     JPanel createLeftPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
         // Game
-        c.gridx = 0;
-        c.gridy = 0;
+        cp.gridx = 0;
+        cp.gridy = 0;
         timerLabel = new JLabel("Time : 0");
-        panel.add(timerLabel, c);
-        c.gridy = 1;
+        panel.add(timerLabel, cp);
+        cp.gridy = 1;
         minesLabel = new JLabel("Mines left: 0");
-        panel.add(minesLabel, c);
-        // Pseudo
-        c.gridy ++;
-        JLabel pseudoLabel = new JLabel("Guest");
-        panel.add(pseudoLabel, c);
+        panel.add(minesLabel, cp);
+        // Players
+        cp.gridy ++;
+            // Case offline
+        if(!this.main.getOnline()) {
+        }
+            // Case online
+        else {
+        }
         // End
         panel.setBackground(background);
         return panel;
@@ -172,6 +183,22 @@ public class GUI extends JPanel implements ActionListener {
         newMenu.addActionListener(this);
         menuBar.add(newMenu);
         menuBar.add(new JLabel("|"));
+        // ICON PSEUDO
+        menuBar.add(Box.createHorizontalGlue());
+        iconUser = new JButton(new ImageIcon("./assets/user.png"));
+        iconUser.setBorderPainted(false);
+        iconUser.setBorder(BorderFactory.createEmptyBorder());
+        iconUser.setFocusable(false);
+        iconUser.setContentAreaFilled(false);
+        iconUser.addActionListener(this);
+        menuBar.add(iconUser);
+        // PSEUDO
+        menuPseudo = new JButton("Guest");
+        menuPseudo.setBorderPainted(false);
+        menuPseudo.setFocusable(false);
+        menuPseudo.setContentAreaFilled(false);
+        menuPseudo.addActionListener(this);
+        menuBar.add(menuPseudo);
         // End
         this.main.setJMenuBar(menuBar);
     }
@@ -179,19 +206,21 @@ public class GUI extends JPanel implements ActionListener {
     /*
      ******************************************************************************
      * 
-     ***************************** BEGINNING OF GAMES *****************************
+     ***************************** BEGINNING / END GAMES *****************************
      * 
      ******************************************************************************
     */
 
     /**
      * Reset the variables for a new game
-     * @param level level of the new game
      */
-    void newGame(Level level) {
+    void newGame() {
         remove(matrixPanel); // Remove the main panel from the screen
         this.matrixPanel = createMatrixPanel(); // Recreate matrix panel
         add(matrixPanel, BorderLayout.CENTER); // Add matrix panel in the screen
+    }
+    void newGame(int x, int y) {
+        this.grille[x][y].showCase(0);
     }
 
     JPanel createMatrixPanel() {
@@ -199,7 +228,7 @@ public class GUI extends JPanel implements ActionListener {
         int dimX = this.main.getDimX();
         int dimY = this.main.getDimY();
         grille = new Case[dimX][dimY];
-        // Panel creation and configurations
+        // Panel creation and configurationleftClicks
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(dimX, dimY));
         // Add all the cases
@@ -235,6 +264,51 @@ public class GUI extends JPanel implements ActionListener {
         return ret;
     }
 
+    public void displayClassement() {
+        if(this.main.getOnline() && playersPanel.size() > 1) {
+            // Case 2 players
+            if(playersPanel.size() == 2) {
+                // Get 2nd player
+                String[] temp = scoresPanel.keySet().toArray(new String[2]);
+                String player = temp[1];
+                if(player.equals(this.main.getPseudo())) player = temp[0];
+                // Get each score
+                int score1 = Integer.parseInt(scoresPanel.get(this.main.getPseudo()).getText());
+                int score2 = this.main.getPlayer(this.main.getPseudo());
+                int s1 = Integer.parseInt(scoresPanel.get(player).getText());
+                int s2 = this.main.getPlayer(player);
+                String title = "";
+                String message = "";
+                // Case you win
+                if(score1 > s1 || (score1 == s1 && score2 > s2)) {
+                    title = "WIN";
+                    message = "You won !\n" 
+                        + this.main.getPseudo() + " " + score1 + " (" + score2 + ") - " 
+                        + player + " " + s1 + " (" + s2 + ")";
+                }
+                // Case draw
+                else if (score1 == s1 && score2 == s2) {
+                    title = "DRAW";
+                    message = "Draw\n"
+                        + this.main.getPseudo() + " " + score1 + " (" + score2 + ") - " 
+                        + player + " " + s1 + " (" + s2 + ")";
+                }
+                // Case you loose
+                else {
+                    title = "LOOSE";
+                    message = "You lost...\n" 
+                        + this.main.getPseudo() + " " + score1 + " (" + score2 + ") - " 
+                        + player + " " + s1 + " (" + s2 + ")";
+                }
+                JOptionPane.showMessageDialog(this,message,title,JOptionPane.INFORMATION_MESSAGE);
+            }
+            // Case multi-players
+            else {
+
+            }
+        }
+    }
+
 
     /*
      ******************************************************************************
@@ -250,55 +324,122 @@ public class GUI extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         // Quit game
-        if(e.getSource() == buttonQuit) main.quit();
+        if(e.getSource() == buttonQuit) this.main.quit();
         // New game
-        else if(e.getSource() == newMenu) main.newGame();
+        else if(e.getSource() == newMenu) this.main.newGame();
         // Online mode activated/desactivated
         else if(e.getSource() == onLine || e.getSource() == offLine || e.getSource() == onlineMenu) {
-            Color color = new Color(80,80,80);
-            if(onLine.getText().equals("ON")) {
-                onLine.setText("   ");
-                offLine.setText("OFF");
-                main.setOffLine();
-            } else {
-                color = new Color(0,220,50);
-                onLine.setText("ON");
-                offLine.setText("   ");
-                main.setOnLine();
-            }
-            onlineMenu.setBackground(color);
-            offLine.setBackground(color);
-            onLine.setBackground(color);
+            if(this.main.getOnline()) this.main.switchOffline();
+            else this.main.switchOnline();
         }
+        // Change pseudo
+        else if(e.getSource() == iconUser || e.getSource() == menuPseudo) this.main.changePseudo();
         // New game with different level
         else if(difficultiesMenuItem.contains(e.getSource())) {
             Level level = lvls[difficultiesMenuItem.indexOf(e.getSource())];
-            difficultyMenu.setText("Difficulty " + level.getLevel());
-            main.newGame(level);
+            this.main.changeDifficulty(level);
         }
     }
 
+    /**
+     * 
+     * @param isOnline specify wether the game is online or not
+     */
+    public void switchOnline(boolean isOnline) {
+        // TO DO : Change menu
+        // Change left panel
+        remove(leftPanel); // Remove the main panel from the screen
+        this.leftPanel = createLeftPanel(); // Recreate matrix panel
+        add(leftPanel, BorderLayout.WEST); // Add matrix panel in the screen
+        // TO DO : Change right panel
+
+        // Change switch button
+        Color color = new Color(80,80,80);
+        if(isOnline) {
+            color = new Color(0,220,50);
+            onLine.setText("ON");
+            offLine.setText("   ");
+        } else {
+            onLine.setText("   ");
+            offLine.setText("OFF");
+        }
+        onlineMenu.setBackground(color);
+        offLine.setBackground(color);
+        onLine.setBackground(color);
+    }
+
+    void changeScore(String player, int value) {
+        int n = Integer.parseInt(this.scoresPanel.get(player).getText());
+        this.scoresPanel.get(player).setText(String.valueOf(n+value));
+    }
+
+    void loses(String player) {
+        System.out.println(player + " loses");
+        this.lifePanel.get(player).setIcon(new ImageIcon("./assets/skull.png"));
+    }
+
+    /**
+     * FOR CHANGE DISPLAY
+     */
+
+    public void changeTimer(int seconds) {timerLabel.setText("Time : " + String.valueOf(seconds));}
+    public void changeDifficulty(String level) {difficultyMenu.setText("Difficulty " + level);}
+    public void changeMinesLabel(int minesLeft) {if(minesLeft >= 0) minesLabel.setText("Mines left: " + String.valueOf(minesLeft));}
+    public void changePseudo(String newPseudo) {
+        this.menuPseudo.setText(newPseudo);
+    }
+    public void changePseudo(String newPseudo, String oldPseudo) {
+        this.menuPseudo.setText(newPseudo);
+        if(this.main.getOnline()) this.changePlayer(newPseudo, oldPseudo); // If online: change the pseudo for the scores
+    }
+    public void changePlayer(String newPseudo, String oldPseudo) {
+        this.playersPanel.put(newPseudo, this.playersPanel.remove(oldPseudo)); // Change the key for player
+        this.scoresPanel.put(newPseudo, this.scoresPanel.remove(oldPseudo)); // Change the key for score
+        this.lifePanel.put(newPseudo, this.lifePanel.remove(oldPseudo)); // Change the key for life indicator
+        this.playersPanel.get(newPseudo).setText(newPseudo); // Change the text
+    }
+    public void addPlayer(String player) {
+        cp.gridy ++;
+        // Player label
+        cp.gridx = 1;
+        JLabel pLabel = new JLabel(player);
+        this.playersPanel.put(player, pLabel);
+        leftPanel.add(pLabel, cp);
+        // Score label
+        cp.gridx = 2;
+        JLabel sLabel = new JLabel("0");
+        this.scoresPanel.put(player, sLabel);
+        leftPanel.add(sLabel, cp);
+        // Life label
+        cp.gridx = 0;
+        JLabel lLabel = new JLabel(new ImageIcon("./assets/void.png"));
+        this.lifePanel.put(player, lLabel);
+        leftPanel.add(lLabel, cp);
+
+        leftPanel.revalidate();
+    }
+    public void removePlayer(String player) {
+        leftPanel.remove(this.playersPanel.get(player));
+        leftPanel.remove(this.scoresPanel.get(player));
+        cp.gridy --;
+        this.playersPanel.remove(player);
+        this.scoresPanel.remove(player);
+        leftPanel.revalidate();
+    }
+
+    /**
+     * 
+     */
+
+    public void showCase(int x, int y, int n) {this.grille[x][y].showCase(n);}
+
     public int computeMinesNumber(int x, int y) {return main.computeMinesNumber(x, y);}
 
-    void changeTimer(int seconds) {timerLabel.setText("Time : " + String.valueOf(seconds));}
-
-    /*
-     ***************************************************************************
-     * 
-     ***************************** GETERS / SETERS *****************************
-     * 
-     ***************************************************************************
-    */
+    public boolean getOnline() {return this.main.getOnline();}
 
     public boolean getAuthorizedClick() {return main.getAuthorizedClick();}
 
-    /**
-     * Increase or decrease the number of mines left and change the label
-     * @param i value to add to the variable minesLeft
-     */
-    int changeBombs(int i) {return this.main.changeBombs(i);}
-    void changeMinesLabel(int minesLeft) {if(minesLeft >= 0) minesLabel.setText("Mines left: " + String.valueOf(minesLeft));}
-
+    public int changeBombs(int i) {return this.main.changeBombs(i);}
 
     public void isClicked(int x, int y) {this.main.isClicked(x, y);}
 

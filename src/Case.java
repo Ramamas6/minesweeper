@@ -87,19 +87,31 @@ public class Case extends JPanel implements MouseListener {
         }
     }
 
-    void leftClick() {
-        if (isClicked == 1) gui.changeBombs(1);
-        isClicked = 3; // Discover
-        if (isMine) {
-            try {image = ImageIO.read(new File("./assets/explosion.png"));} catch (IOException e) {e.printStackTrace();}
-        }
-        else {
-            int n = gui.computeMinesNumber(x,y);
-            if (n > 0) txt = String.valueOf(n);
-            else txt = "";
-        }
+    void showCase(int n) {
+        this.isClicked = 3;
+        if (n > 0) txt = String.valueOf(n);
         repaint();
-        gui.isClicked(x, y);
+    }
+
+    void leftClick() {
+        if(!this.gui.getOnline()) {
+            if (isClicked == 1) gui.changeBombs(1);
+            isClicked = 3; // Discover
+            if (isMine) {
+                try {image = ImageIO.read(new File("./assets/explosion.png"));} catch (IOException e) {e.printStackTrace();}
+            }
+            else {
+                int n = gui.computeMinesNumber(x,y);
+                if (n > 0) txt = String.valueOf(n);
+                else txt = "";
+            }
+            repaint();
+            this.gui.isClicked(x, y);
+        }
+        // Case online
+        else {
+            this.gui.isClicked(x, y);
+        }
     }
 
     void rightClick() {
@@ -124,8 +136,8 @@ public class Case extends JPanel implements MouseListener {
     @Override
     public void mouseClicked(MouseEvent me) {
         if (this.gui.getAuthorizedClick() && isClicked != 3) {
-            if(me.getButton() == MouseEvent.BUTTON1) {System.out.println("click gauche");leftClick();}
-            if(me.getButton() == MouseEvent.BUTTON3) {System.out.println("click droit");rightClick();}
+            if(me.getButton() == MouseEvent.BUTTON1) {leftClick();}
+            if(me.getButton() == MouseEvent.BUTTON3) {rightClick();}
         }
     }
     @Override
