@@ -1,4 +1,4 @@
-package src;
+package src.common;
 
 
 public enum Level {
@@ -11,15 +11,15 @@ public enum Level {
     private final int DIMY;
     private final int NBMINES;
 
-    Level(String str, int dimx, int dimy, int nbMines) {
+    private Level(String str, int dimx, int dimy, int nbMines) {
         this.LEVEL = str;
         this.DIMX = dimx;
         this.DIMY = dimy;
         this.NBMINES = nbMines;
     }
-    Level(String str, int dim, int nbMines) {this(str, dim, dim, nbMines);}
-    String getLevel() {return LEVEL;}
-    int getDimX() {return DIMX;}
-    int getDimY() {return DIMY;}
-    int getMines() {return NBMINES;}
+    private Level(String str, int dim, int nbMines) {this(str, dim, dim, nbMines);}
+    public String getLevel() {return LEVEL;}
+    public int getDimX() {return DIMX;}
+    public int getDimY() {return DIMY;}
+    public int getMines() {return NBMINES;}
 }

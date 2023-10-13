@@ -1,5 +1,7 @@
-package src;
+package src.server;
 
+import src.common.Level;
+import src.common.Matrix;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -11,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Server {
     // Connections
-    final static int PORT = 10001;
+    final static int PORT = 10000;
     private Map<Integer, DataOutputStream> sorties = new HashMap<Integer, DataOutputStream>();
     private int nbrPlayers = 0;
     private int index = 0;
@@ -19,12 +21,12 @@ public class Server {
     // Game
     boolean run = true;
     private Matrix matrix = new Matrix();
-    private Level currentLevel = Level.MEDIUM;
+    private Level currentLevel = Level.HARD;
     private int gameState = 0;
     private int casesLeft = 0;
     private int alivePlayers = 0;
 
-    Server() {
+    private Server() {
         try {
             // Server creation
             ServerSocket serv = new ServerSocket(PORT);

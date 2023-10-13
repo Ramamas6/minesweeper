@@ -1,4 +1,6 @@
-package src;
+package src.client;
+
+import src.common.Level;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -6,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class GUI extends JPanel implements ActionListener {
@@ -94,20 +97,44 @@ public class GUI extends JPanel implements ActionListener {
         // Game
         cp.gridx = 0;
         cp.gridy = 0;
-        timerLabel = new JLabel("Time : 0");
-        panel.add(timerLabel, cp);
-        cp.gridy = 1;
-        minesLabel = new JLabel("Mines left: 0");
-        panel.add(minesLabel, cp);
+        JLabel temp1 = new JLabel("Game:");
+        temp1.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+        panel.add(temp1, cp);
+            // Time
+            cp.gridy ++;
+            cp.gridwidth = 2;
+            panel.add(new JLabel("Time: "), cp);
+            cp.gridwidth = 1;
+            cp.gridx = 2;
+            timerLabel = new JLabel("0");
+            panel.add(timerLabel, cp);
+            // Mines
+            cp.gridy ++;
+            cp.gridwidth = 2;
+            cp.gridx = 0;
+            panel.add(new JLabel("Mines left: "), cp);
+            minesLabel = new JLabel("0");
+            cp.gridwidth = 1;
+            cp.gridx = 2;
+            panel.add(minesLabel, cp);
         // Players
         cp.gridy ++;
+        cp.gridx = 0;
+        cp.gridwidth = 3;
+        panel.add(new JLabel("   "), cp);
             // Case offline
-        if(!this.main.getOnline()) {
-        }
+        if(!this.main.getOnline()) {}
             // Case online
         else {
+            cp.gridy ++;
+            cp.gridwidth = 2;
+            JLabel temp2 = new JLabel("Players:");
+            temp2.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+            panel.add(temp2, cp);
         }
         // End
+        cp.gridwidth = 1;
+        cp.gridy ++;
         panel.setBackground(background);
         return panel;
     }
@@ -218,6 +245,11 @@ public class GUI extends JPanel implements ActionListener {
         remove(matrixPanel); // Remove the main panel from the screen
         this.matrixPanel = createMatrixPanel(); // Recreate matrix panel
         add(matrixPanel, BorderLayout.CENTER); // Add matrix panel in the screen
+        // Case online
+        if(this.main.getOnline()) {
+            for (Map.Entry<String,JLabel> entry : scoresPanel.entrySet()) entry.getValue().setText("0");
+            for (Map.Entry<String,JLabel> entry : lifePanel.entrySet()) entry.getValue().setIcon(new ImageIcon("./assets/void.png"));
+        }
     }
     void newGame(int x, int y) {
         this.grille[x][y].showCase(0);
@@ -272,43 +304,26 @@ public class GUI extends JPanel implements ActionListener {
                 String[] temp = scoresPanel.keySet().toArray(new String[2]);
                 String player = temp[1];
                 if(player.equals(this.main.getPseudo())) player = temp[0];
-                // Get each score
-                int score1 = Integer.parseInt(scoresPanel.get(this.main.getPseudo()).getText());
-                int score2 = this.main.getPlayer(this.main.getPseudo());
-                int s1 = Integer.parseInt(scoresPanel.get(player).getText());
-                int s2 = this.main.getPlayer(player);
-                String title = "";
-                String message = "";
-                // Case you win
-                if(score1 > s1 || (score1 == s1 && score2 > s2)) {
-                    title = "WIN";
-                    message = "You won !\n" 
-                        + this.main.getPseudo() + " " + score1 + " (" + score2 + ") - " 
-                        + player + " " + s1 + " (" + s2 + ")";
-                }
-                // Case draw
-                else if (score1 == s1 && score2 == s2) {
-                    title = "DRAW";
-                    message = "Draw\n"
-                        + this.main.getPseudo() + " " + score1 + " (" + score2 + ") - " 
-                        + player + " " + s1 + " (" + s2 + ")";
-                }
-                // Case you loose
-                else {
-                    title = "LOOSE";
-                    message = "You lost...\n" 
-                        + this.main.getPseudo() + " " + score1 + " (" + score2 + ") - " 
-                        + player + " " + s1 + " (" + s2 + ")";
-                }
-                JOptionPane.showMessageDialog(this,message,title,JOptionPane.INFORMATION_MESSAGE);
+                // Display the final box
+                String[] texts = this.main.getPlayer(this.main.getPseudo()).compareAndReturnString(this.main.getPlayer(player));
+                JOptionPane.showMessageDialog(this,texts[1],texts[0],JOptionPane.INFORMATION_MESSAGE);
             }
             // Case multi-players
             else {
-
+                ArrayList<Player> playersList = this.main.getAllPlayers(); // Get the list of players
+                Collections.sort(playersList, new SortPlayer()); // Sort the list
+                int position = playersList.indexOf(this.main.getPlayer(this.main.getPseudo())) + 1; // Get the position
+                // Title
+                String title = "You are number " + position + "...";
+                if(position < 4) title = "You are number " + position + "!";
+                // Message
+                String message = "First: " + playersList.get(0).display()
+                                + "\nSecond: " + playersList.get(1).display()
+                                + "\nThird: " + playersList.get(2).display();
+                JOptionPane.showMessageDialog(this,message,title,JOptionPane.INFORMATION_MESSAGE);
             }
         }
     }
-
 
     /*
      ******************************************************************************
@@ -382,9 +397,9 @@ public class GUI extends JPanel implements ActionListener {
      * FOR CHANGE DISPLAY
      */
 
-    public void changeTimer(int seconds) {timerLabel.setText("Time : " + String.valueOf(seconds));}
+    public void changeTimer(int seconds) {timerLabel.setText(String.valueOf(seconds));}
     public void changeDifficulty(String level) {difficultyMenu.setText("Difficulty " + level);}
-    public void changeMinesLabel(int minesLeft) {if(minesLeft >= 0) minesLabel.setText("Mines left: " + String.valueOf(minesLeft));}
+    public void changeMinesLabel(int minesLeft) {if(minesLeft >= 0) minesLabel.setText(String.valueOf(minesLeft));}
     public void changePseudo(String newPseudo) {
         this.menuPseudo.setText(newPseudo);
     }
@@ -402,7 +417,7 @@ public class GUI extends JPanel implements ActionListener {
         cp.gridy ++;
         // Player label
         cp.gridx = 1;
-        JLabel pLabel = new JLabel(player);
+        JLabel pLabel = new JLabel(player + " ");
         this.playersPanel.put(player, pLabel);
         leftPanel.add(pLabel, cp);
         // Score label

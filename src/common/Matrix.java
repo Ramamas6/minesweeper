@@ -1,4 +1,4 @@
-package src;
+package src.common;
 import java.util.Random;
 
 public class Matrix {
@@ -13,7 +13,7 @@ public class Matrix {
      * @param level : level of the game (define dimension and number of mines)
      *                default: MEDIUM
      */
-    Matrix(Level level) {
+    public Matrix(Level level) {
         // Set parameters
         dimX = level.getDimX();
         dimY = level.getDimY();
@@ -21,14 +21,14 @@ public class Matrix {
         // Creates matrix and place mines
         cases = new boolean[dimX][dimY]; // Initialisé a false par défaut
     }
-    Matrix() {this(Level.MEDIUM);}
+    public Matrix() {this(Level.MEDIUM);}
 
     /**
      * Place random mines in the matrix
      * @param x
      * @param y
      */
-    void fillRandomly(int x, int y) {
+    public void fillRandomly(int x, int y) {
         Random generator = new Random();
         int mineX, mineY;
         int nb = 0;
@@ -48,7 +48,7 @@ public class Matrix {
     /**
      * Display Matrix
      */
-    void display() {
+    public void display() {
         System.out.print("\n");
         for (int i = 0; i < cases.length; i ++) {
             for (int j = 0; j < cases[0].length; j ++) {
@@ -65,7 +65,7 @@ public class Matrix {
      * @param x : x coordinate of the case
      * @param y : y coordinate of the case
      */
-    int computeMinesNumber(int x, int y) {
+    public int computeMinesNumber(int x, int y) {
         int total = 0;
         for (int i = Math.max(0,x-1); i < Math.min(cases.length, x+2);i ++) {
             for (int j = Math.max(0,y-1); j < Math.min(cases[0].length, y+2);j ++) {
@@ -79,7 +79,7 @@ public class Matrix {
      * Restart the matrix for a new offline game
      * @param level : level of the game
      */
-    void newMatrix(Level level) {
+    public void newMatrix(Level level) {
         this.dimX = level.getDimX();
         this.dimY = level.getDimY();
         this.nbMines = level.getMines();
@@ -91,7 +91,7 @@ public class Matrix {
      * @param x
      * @param y
      */
-    void newMatrix(Level level, int dimx, int dimy, int minesNumber) {
+    public void newMatrix(Level level, int dimx, int dimy, int minesNumber) {
         this.dimX = dimx;
         this.dimY = dimy;
         this.nbMines = minesNumber;
@@ -103,7 +103,7 @@ public class Matrix {
      * @param x position x of the first case
      * @param y position y of the first case
      */
-    void newMatrix(Level level, int x, int y) {
+    public void newMatrix(Level level, int x, int y) {
         this.newMatrix(level);
         this.casesDiscovered = new boolean[this.dimX][this.dimY];
         this.fillRandomly(x, y);

@@ -1,5 +1,6 @@
-package src;
+package src.client;
 
+import src.common.Level;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -25,7 +26,6 @@ public class ThreadClient implements Runnable {
         txt = entree.readUTF();
         if(!txt.equals("command_ok")) this.main.setPseudo(txt);
         else {System.out.println("ok");}
-        this.main.passOnline();
         // Get first information
         int nbrPlayers = entree.readInt(); // Number of players currently connected
         if (nbrPlayers > 0) System.out.println(nbrPlayers + " players connected :");

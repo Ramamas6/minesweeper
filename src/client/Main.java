@@ -1,4 +1,7 @@
-package src;
+package src.client;
+
+import src.common.Level;
+import src.common.Matrix;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,24 +10,25 @@ import java.awt.event.ComponentEvent;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.Timer;
-
 
 public class Main extends JFrame{
 
     // General
-    final static int PORT = 10001;
+    int port = 10000;
+    String host = "LOCALHOST";
     private Socket socket;
     private DataOutputStream sortie;
     private GUI gui;
     private Matrix matrix;
-    private boolean[][] cases; // Matrix's cases
 
     // Game
     private int gameStarted = 0; // Wether the game is started (0 = no, 1 = yes offline, 2 = yes online)
@@ -37,10 +41,10 @@ public class Main extends JFrame{
     // Online mode
     private boolean online = false;
     private String pseudo = "";
-    private Map<String, Integer> players = new HashMap<String, Integer>();
+    private Map<String, Player> players = new HashMap<String, Player>();
 
     public static void main(String[] args) {if (args.length > 0) new Main(args[0]);else new Main("");}
-    Main(String s) {
+    private Main(String s) {
         this.timer(); // Start timer
         this.matrix = new Matrix();
         this.pseudo = s;
@@ -58,32 +62,53 @@ public class Main extends JFrame{
      * **************** *
     **/
 
-    void switchOnline() {
-        try {
-            // ouverture de la socket et des streams
-            socket = new Socket("LOCALHOST",PORT);
+    /**
+     * Called when the button is pressed
+     */
+    public void switchOnline() {
+        // Connection windows
+        JTextField hostField = new JTextField(this.host);
+        JTextField portField = new JTextField(String.valueOf(this.port));
+        Object[] message = {"Host:", hostField,"Port:", portField};
+        int connection = JOptionPane.showConfirmDialog(this, message, "Connection to server", JOptionPane.OK_CANCEL_OPTION);
+        if(connection == JOptionPane.OK_OPTION) {
+            // Get host and port
+            this.host = hostField.getText();
+            this.port = Integer.parseInt(portField.getText());
+            if(!tryConnect()) this.tryConnectTimer();
+        }
+    }
+    /**
+     * Try to connect to the server
+     * @return wether the connection succed or not
+     */
+    private boolean tryConnect() {
+        try{
+            // Open socket and streams
+            socket = new Socket(host,port);
             sortie = new DataOutputStream(socket.getOutputStream());
             // Create listening thread
             Runnable r = new ThreadClient(socket, this);
             new Thread(r).start();
-        } catch (IOException e) {
-                this.online = false;
-                this.gui.switchOnline(false);
-                e.printStackTrace();
-        }
+            this.online = true;
+            this.gui.switchOnline(true);
+            return true;
+        } catch (IOException e) {return false;}
     }
-    void passOnline(){
-        this.online = true;
-        this.gui.switchOnline(true);
+    private void tryConnectTimer() {
+        ActionListener tryConnection = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {if(tryConnect()) ((Timer)evt.getSource()).stop();}
+        }; new Timer(1000, tryConnection).start();
     }
 
-    void switchOffline() {
+
+    public void switchOffline() {
         this.online = false;
         this.gui.switchOnline(false);
     }
 
-    void broadCastString(String txt){try{sortie.writeUTF(txt);}catch(IOException e){e.printStackTrace();}}
-    void broadCastInt(int value){try{sortie.writeInt(value);}catch(IOException e){e.printStackTrace();}}
+    public void broadCastString(String txt){try{sortie.writeUTF(txt);}catch(IOException e){e.printStackTrace();}}
+    public void broadCastInt(int value){try{sortie.writeInt(value);}catch(IOException e){e.printStackTrace();}}
 
     /**
      * **************** *
@@ -91,7 +116,7 @@ public class Main extends JFrame{
      * **************** *
     **/
 
-    void setParameters(boolean firstStart) {
+    private void setParameters(boolean firstStart) {
         if (firstStart) {
             setContentPane(gui);
             setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -101,8 +126,8 @@ public class Main extends JFrame{
         if (size[0] == 0) setExtendedState(JFrame.MAXIMIZED_BOTH); else setSize(size[0], size[1]);
         setVisible(true);
     }
-    void setParameters() {this.setParameters(false);}
-    void quit() {
+    private void setParameters() {this.setParameters(false);}
+    public void quit() {
         System.out.println("Bye-Bye");
         System.exit(0);
     }
@@ -126,9 +151,9 @@ public class Main extends JFrame{
             // If the game is started
             else {
                 // If it is not a mine : decrease casesLeft
-                if (!cases[x][y]) casesLeft --;
+                if (!this.matrix.isMine(x, y)) casesLeft --;
                 // If the game end now (mine found or all cases discovered) -> final message
-                if (cases[x][y] || casesLeft == 0) {
+                if (this.matrix.isMine(x, y) || casesLeft == 0) {
                     this.gameStarted = 0;
                     String titleMessage = "Game Over";
                     String message = "What do you want to do ?";
@@ -146,8 +171,8 @@ public class Main extends JFrame{
                 }
                 // If the game isn't finished yet and a case 0 is discovered -> propagate
                 else if (this.matrix.computeMinesNumber(x, y) == 0) {
-                    for (int i = Math.max(0,x-1); i < Math.min(cases.length, x+2);i ++)
-                        for (int j = Math.max(0,y-1); j < Math.min(cases[0].length, y+2);j ++)
+                    for (int i = Math.max(0,x-1); i < Math.min(this.matrix.getDimX(), x+2);i ++)
+                        for (int j = Math.max(0,y-1); j < Math.min(this.matrix.getDimY(), y+2);j ++)
                             gui.leftClick(i, j);        
                 }
             }
@@ -163,11 +188,13 @@ public class Main extends JFrame{
      */
     public void isClicked(String player, int x, int y, int n) {
         this.showCase(x,y,n); // Display the case
-        this.gui.changeScore(player,n); // Actualise 1rst score
-        this.players.replace(player, this.players.get(player) + 1);// Actualise 2nd score (for equalities)
+        this.gui.changeScore(player,n); // Actualise 1rst score in gui
+        this.players.get(player).score1 += n; // Actualise 1rst score
+        this.players.get(player).score2 ++; // Actualise 2nd score (for equalities)
     }
 
     public void loses(String player) {
+        this.players.get(player).alive = false;
         this.gui.loses(player);
     }
 
@@ -180,7 +207,7 @@ public class Main extends JFrame{
         else return -1;
     }
 
-    void timer() {
+    private void timer() {
         ActionListener taskPerformer = new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 if (gameStarted > 0) seconds ++;
@@ -193,7 +220,7 @@ public class Main extends JFrame{
     /**
      * Called when "new game" is pressed
      */
-    void newGame() {
+    public void newGame() {
         // Case Offline
         if(!this.online) {
             this.seconds = 0;
@@ -214,19 +241,19 @@ public class Main extends JFrame{
     /**
      * Start a new Online game
      */ 
-    void newGame(int dimx, int dimy, int minesNumber) {
+    public void newGame(int dimx, int dimy, int minesNumber) {
         this.authorizedClick = false;
         this.gameStarted = 2;
         this.seconds = 0;
         this.matrix.newMatrix(currentLevel, dimx, dimy, minesNumber);
-        this.cases = this.matrix.getCases();
         this.minesLeft = minesNumber;
+        for (Map.Entry<String,Player> entry : this.players.entrySet()) entry.getValue().reset();
         this.gui.changeMinesLabel(minesNumber);
         this.gui.newGame();
         this.setParameters();
     }
 
-    void changeDifficulty(Level level) {
+    public void changeDifficulty(Level level) {
         // Case Offline
         if(!this.online) {
             this.currentLevel = level;
@@ -248,21 +275,20 @@ public class Main extends JFrame{
      * @param x coordinate x of the first case
      * @param y coordinate y of the first case
      */
-    void startGame(int x, int y) {
+    public void startGame(int x, int y) {
         // Case offline
         if(!this.online) {
             this.gameStarted = 1;
             // Place mines in Matrix and then in each Case
             this.matrix.fillRandomly(x, y);
-            this.cases = this.matrix.getCases();
             for (int i = 0; i < this.matrix.getDimX(); i ++)
                 for (int j = 0; j < this.matrix.getDimY(); j ++)
                     if(this.matrix.isMine(i,j)) this.gui.setMine(i,j);
             // Compute cases left
             this.casesLeft = this.matrix.getDimX() * this.matrix.getDimY() - this.matrix.getMines() - 1;
             // Propagate the first case
-            for (int i = Math.max(0,x-1); i < Math.min(cases.length, x+2);i ++)
-                for (int j = Math.max(0,y-1); j < Math.min(cases[0].length, y+2);j ++)
+            for (int i = Math.max(0,x-1); i < Math.min(this.matrix.getDimX(), x+2);i ++)
+                for (int j = Math.max(0,y-1); j < Math.min(this.matrix.getDimY(), y+2);j ++)
                     this.gui.leftClick(i, j);
         }
         // Case online
@@ -275,24 +301,22 @@ public class Main extends JFrame{
     /**
      * Called when the game end (to reveal all mines)
      */
-    void endGame() {
+    public void endGame() {
         this.gameStarted = 0;
         this.authorizedClick = false;
         // Reveal all the cases
-        int x = this.matrix.getDimX();
-        int y = this.matrix.getDimY();
-        for(int i = 0; i < x; i ++)
-            for(int j = 0; j < y; j ++)
+        for(int i = 0; i < this.matrix.getDimX(); i ++)
+            for(int j = 0; j < this.matrix.getDimY(); j ++)
                 this.gui.reveal(i,j,casesLeft == 0);
         // Case online -> display classement
         this.gui.displayClassement();
     }
 
-    int computeMinesNumber(int x, int y) {return this.matrix.computeMinesNumber(x, y);}
+    public int computeMinesNumber(int x, int y) {return this.matrix.computeMinesNumber(x, y);}
 
-    public void showCase(int x, int y, int n) {this.gui.showCase(x,y,n);}
+    private void showCase(int x, int y, int n) {this.gui.showCase(x,y,n);}
 
-    void changePseudo() {
+    public void changePseudo() {
         // Case offline
         if(!this.online) {
             boolean run = true;
@@ -324,12 +348,11 @@ public class Main extends JFrame{
     public void setPseudo(String txt) {this.pseudo = txt;}
 
     public boolean getOnline() {return this.online;}
-    public void setOnline(boolean online) {this.online = online;}
 
     public boolean getAuthorizedClick() {return this.authorizedClick;}
 
     public void addPlayer(String txt) {
-        this.players.put(txt, 0);
+        this.players.put(txt, new Player(txt));
         this.gui.addPlayer(txt);
     }
     public boolean containsPlayer(String txt) {return this.players.containsKey(txt);}
@@ -337,7 +360,8 @@ public class Main extends JFrame{
         this.players.remove(txt);
         if(this.online) this.gui.removePlayer(txt);
     }
-    public int getPlayer(String txt) {return this.players.get(txt);}
+    public Player getPlayer(String txt) {return this.players.get(txt);}
+    public ArrayList<Player> getAllPlayers() {return new ArrayList<>(this.players.values());}
 
     public int getDimX() {return this.matrix.getDimX();}
     public int getDimY() {return this.matrix.getDimY();}

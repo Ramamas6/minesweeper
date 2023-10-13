@@ -1,4 +1,4 @@
-package src;
+package src.client;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -24,15 +24,15 @@ public class Case extends JPanel implements MouseListener {
     private int isClicked = 0; // 0 (unclicked) , 1 (bomb), 2 (don't know), 3 (uncover)
     BufferedImage image;
     
-    Case (GUI gui, int i, int j) {
+    public Case (GUI gui, int i, int j) {
         this.gui = gui;
         x = i;
         y = j;
         addMouseListener(this); // ajout listener souris
     }
 
-    int getClicked(){return this.isClicked;}
-    void setMine(){this.isMine = true;}
+    public int getClicked(){return this.isClicked;}
+    public void setMine(){this.isMine = true;}
 
     @Override
     public void paintComponent(Graphics gc) {
@@ -68,7 +68,7 @@ public class Case extends JPanel implements MouseListener {
      * Reveal the case if it was not set correctly
      * @param win : 1 if the game is won, 0 otherwise
      */
-    void reveal(boolean win){
+    public void reveal(boolean win){
         if (win){
             if(isMine){
                 try {image = ImageIO.read(new File("./assets/disarmed.png"));} catch (IOException e) {e.printStackTrace();}
@@ -87,13 +87,13 @@ public class Case extends JPanel implements MouseListener {
         }
     }
 
-    void showCase(int n) {
+    public void showCase(int n) {
         this.isClicked = 3;
         if (n > 0) txt = String.valueOf(n);
         repaint();
     }
 
-    void leftClick() {
+    public void leftClick() {
         if(!this.gui.getOnline()) {
             if (isClicked == 1) gui.changeBombs(1);
             isClicked = 3; // Discover
@@ -114,7 +114,7 @@ public class Case extends JPanel implements MouseListener {
         }
     }
 
-    void rightClick() {
+    public void rightClick() {
         // Change isClicked
         if (isClicked == 0) {
             isClicked = 1;
@@ -134,14 +134,14 @@ public class Case extends JPanel implements MouseListener {
     }
 
     @Override
-    public void mouseClicked(MouseEvent me) {
+    public void mouseClicked(MouseEvent me) {}
+    @Override
+    public void mousePressed(MouseEvent me) {
         if (this.gui.getAuthorizedClick() && isClicked != 3) {
             if(me.getButton() == MouseEvent.BUTTON1) {leftClick();}
             if(me.getButton() == MouseEvent.BUTTON3) {rightClick();}
         }
     }
-    @Override
-    public void mousePressed(MouseEvent e) {}
     @Override
     public void mouseReleased(MouseEvent e) {}
     @Override

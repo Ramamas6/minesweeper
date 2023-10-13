@@ -1,5 +1,6 @@
-package src;
+package src.server;
 
+import src.common.Level;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -11,7 +12,6 @@ public class ThreadPlayer implements Runnable {
     private Socket player; // Communication socket
     private int index;
     private boolean run = true;
-    
 
     private static List<String> players = new ArrayList<String>();
     private static int nbPlayers = 0; // number of players
@@ -20,7 +20,7 @@ public class ThreadPlayer implements Runnable {
     private boolean alive = true;
     private String command = ""; // Command
 
-    ThreadPlayer(Socket socket, int index) {
+    public ThreadPlayer(Socket socket, int index) {
         player = socket;
         this.index = index;
     }
