@@ -16,7 +16,10 @@ public class Case extends JPanel implements MouseListener {
     private static int DIMY;
     public static void RESIZE(int dimx, int dimy) {DIMX = dimx; DIMY = dimy;}
 
-    private String txt = " ";
+    private static Theme THEME = Theme.DEFAULT;
+    public static void CHANGETHEME(Theme theme) {THEME = theme;}
+
+    private int txtInt = 0;
     private GUI gui;
     private int x;
     private int y;
@@ -40,20 +43,28 @@ public class Case extends JPanel implements MouseListener {
         super.paintComponent(gc);
         setPreferredSize(new Dimension(DIMX, DIMY));
         // Background
-        if (isClicked == 3) gc.setColor(new Color(215+15*((x+y)%2), 184+10*((x+y)%2), 153+6*((x+y)%2)));
-        else gc.setColor(new Color(0, 190+20*((x+y)%2), 50));
-        // Fill
+        //if (isClicked == 3) gc.setColor(new Color(215+15*((x+y)%2), 184+10*((x+y)%2), 153+6*((x+y)%2)));
+        //else gc.setColor(new Color(0, 190+20*((x+y)%2), 50));
+        if(isClicked == 3) gc.setColor((x+y)%2 == 0 ? THEME.getDiscover():THEME.getDiscoverBis());
+        else gc.setColor((x+y)%2 == 0 ? THEME.getUncover():THEME.getUncoverBis());
         gc.fillRect(0,0, DIMX, DIMY);
-        gc.setColor(Color.black);
-        gc.drawRect(0, 0, DIMX, DIMY);
+        // Rectangle
+        if(isClicked == 3 && THEME.getDiscoverLine() != null) {
+            gc.setColor(THEME.getDiscoverLine());
+            gc.drawRect(0, 0, DIMX, DIMY);
+        } else if(isClicked != 3 && THEME.getUncoverLine() != null) {
+            gc.setColor(THEME.getUncoverLine());
+            gc.drawRect(0, 0, DIMX, DIMY);
+        }
         // Draw text (case discovered but not mine)
         if (isClicked == 3 && !isMine) {
-                gc.setFont(new Font("TimesRoman", Font.PLAIN, getHeight()));
-                int textSize = gc.getFont().getSize();
-                int textHeight = getFontMetrics(getFont()).getHeight();
-                int dimX = (this.getWidth() - textSize/2)/2;
-                int dimY = this.getHeight() - textHeight / 2;
-                gc.drawString(txt,dimX,dimY);
+            gc.setFont(new Font("TimesRoman", Font.PLAIN, getHeight()));
+            gc.setColor(THEME.getNumber(txtInt));
+            int textSize = gc.getFont().getSize();
+            int textHeight = getFontMetrics(getFont()).getHeight();
+            int dimX = (this.getWidth() - textSize/2)/2;
+            int dimY = this.getHeight() - textHeight / 2;
+            gc.drawString((txtInt == 0 ? " ":String.valueOf(txtInt)),dimX,dimY);
         }
         // Draw image
         else if (isClicked != 0) {
@@ -89,7 +100,7 @@ public class Case extends JPanel implements MouseListener {
 
     public void showCase(int n) {
         this.isClicked = 3;
-        if (n > 0) txt = String.valueOf(n);
+        txtInt = n;
         repaint();
     }
 
@@ -100,11 +111,7 @@ public class Case extends JPanel implements MouseListener {
             if (isMine) {
                 try {image = ImageIO.read(new File("./assets/explosion.png"));} catch (IOException e) {e.printStackTrace();}
             }
-            else {
-                int n = gui.computeMinesNumber(x,y);
-                if (n > 0) txt = String.valueOf(n);
-                else txt = "";
-            }
+            else txtInt = gui.computeMinesNumber(x,y);
             repaint();
             this.gui.isClicked(x, y);
         }

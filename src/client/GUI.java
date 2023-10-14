@@ -20,15 +20,16 @@ public class GUI extends JPanel implements ActionListener {
     private JPanel leftPanel;
     private JPanel rightPanel;
     private JPanel bottomPanel;
-    private Map<String, JLabel> playersPanel = new HashMap<String, JLabel>();
-    private Map<String, JLabel> scoresPanel = new HashMap<String, JLabel>();
-    private Map<String, JLabel> lifePanel = new HashMap<String, JLabel>();
-    GridBagConstraints cp = new GridBagConstraints();
+    private Map<String, JLabel> playersPanel = new HashMap<String, JLabel>(); // Names of players (left panel)
+    private Map<String, JLabel> scoresPanel = new HashMap<String, JLabel>(); // Scores of players (left panel)
+    private Map<String, JLabel> lifePanel = new HashMap<String, JLabel>(); // Icon of players (left panel)
+    GridBagConstraints cp = new GridBagConstraints(); // Grid constraint for left panel
 
     // Objects
     //private boolean[][] cases; // Matrix's cases
     private Main main; // Main object
     private Case[][] grille; // Array of Case
+    private Theme theme = Theme.DEFAULT; // General graphic theme
 
     // Dynamic things
     private JButton buttonQuit; // Quit game button
@@ -42,8 +43,12 @@ public class GUI extends JPanel implements ActionListener {
     private JButton offLine;
     private JMenu difficultyMenu;
     private List<JMenuItem> difficultiesMenuItem;
-    private Level lvls[] = { Level.EASY, Level.MEDIUM, Level.HARD, Level.DIABOLICAL }; // Possible levels
+    private Level[] lvls = { Level.EASY, Level.MEDIUM, Level.HARD, Level.DIABOLICAL }; // Possible levels
     private JButton newMenu;
+    private JMenuItem connectionMenu;
+    private List<JMenuItem> themesMenuItem;
+    private Theme[] themes = { Theme.DEFAULT, Theme.GOOGLE, Theme.GRAY, Theme.LIGHT, Theme.DARK };
+
     private JButton iconUser;
     private JButton menuPseudo;
 
@@ -196,10 +201,18 @@ public class GUI extends JPanel implements ActionListener {
         // Settings
         JMenu settingsMenu = new JMenu("Settings");
             // Colors
-            JMenu colorMenu = new JMenu("Color normal");
-            colorMenu.add(new JMenuItem("Color1"));
-            colorMenu.add(new JMenuItem("Color2"));
-        settingsMenu.add(colorMenu);
+            JMenu themeMenu = new JMenu("Theme");
+            themesMenuItem = new ArrayList<JMenuItem>();
+            for (int i = 0; i < themes.length; i ++) {
+                themesMenuItem.add(new JMenuItem(themes[i].getTheme()));
+                themeMenu.add(themesMenuItem.get(i));
+                themesMenuItem.get(i).addActionListener(this);
+            }
+            settingsMenu.add(themeMenu);
+            // Connection
+            connectionMenu = new JMenuItem("Connection settings");
+            connectionMenu.addActionListener(this);
+            settingsMenu.add(connectionMenu);
         menuBar.add(settingsMenu);
         menuBar.add(new JLabel("   | "));
         // New game
@@ -347,12 +360,19 @@ public class GUI extends JPanel implements ActionListener {
             if(this.main.getOnline()) this.main.switchOffline();
             else this.main.switchOnline();
         }
+        // Change connection settings
+        else if(e.getSource() == connectionMenu) this.main.changeConnectionSettings();
         // Change pseudo
         else if(e.getSource() == iconUser || e.getSource() == menuPseudo) this.main.changePseudo();
         // New game with different level
         else if(difficultiesMenuItem.contains(e.getSource())) {
             Level level = lvls[difficultiesMenuItem.indexOf(e.getSource())];
             this.main.changeDifficulty(level);
+        }
+        // Change color
+        else if(themesMenuItem.contains(e.getSource())) {
+            Theme theme = themes[themesMenuItem.indexOf(e.getSource())];
+            this.changeTheme(theme);
         }
     }
 
@@ -396,6 +416,23 @@ public class GUI extends JPanel implements ActionListener {
     /**
      * FOR CHANGE DISPLAY
      */
+
+    private void changeTheme(Theme theme) {
+        this.theme = theme;
+        // Change backgrounds
+        titlePanel.setBackground(theme.getBackground());
+        matrixPanel.setBackground(theme.getBackground());
+        leftPanel.setBackground(theme.getBackground());
+        rightPanel.setBackground(theme.getBackground());
+        bottomPanel.setBackground(theme.getBackground());
+        // Change cases
+        Case.CHANGETHEME(theme);
+        // // TODO: Change cases
+        // for(int i = 0; i < this.dimX; i ++)
+        //     for(int j = 0; j < this.dimY; j ++)
+        //         this.grille[i][j].changeTheme
+    }
+    public Theme getTheme(){return this.theme;}
 
     public void changeTimer(int seconds) {timerLabel.setText(String.valueOf(seconds));}
     public void changeDifficulty(String level) {difficultyMenu.setText("Difficulty " + level);}

@@ -62,20 +62,26 @@ public class Main extends JFrame{
      * **************** *
     **/
 
-    /**
-     * Called when the button is pressed
-     */
-    public void switchOnline() {
-        // Connection windows
+    public void changeConnectionSettings() {
         JTextField hostField = new JTextField(this.host);
         JTextField portField = new JTextField(String.valueOf(this.port));
         Object[] message = {"Host:", hostField,"Port:", portField};
         int connection = JOptionPane.showConfirmDialog(this, message, "Connection to server", JOptionPane.OK_CANCEL_OPTION);
-        if(connection == JOptionPane.OK_OPTION) {
-            // Get host and port
+        if(connection == JOptionPane.OK_OPTION) { // If OK pressed, get host and port
             this.host = hostField.getText();
             this.port = Integer.parseInt(portField.getText());
-            if(!tryConnect()) this.tryConnectTimer();
+        }
+    }
+
+    /**
+     * Called when the button connection is pressed
+     * Try to connect, or launch a timer to try again every seconds if the connection failed
+     */
+    public void switchOnline() {
+        if(!tryConnect()) {
+            ActionListener tryConnection = new ActionListener() {
+                public void actionPerformed(ActionEvent evt) {if(tryConnect()) ((Timer)evt.getSource()).stop();}
+            }; new Timer(1000, tryConnection).start();
         }
     }
     /**
@@ -94,11 +100,6 @@ public class Main extends JFrame{
             this.gui.switchOnline(true);
             return true;
         } catch (IOException e) {return false;}
-    }
-    private void tryConnectTimer() {
-        ActionListener tryConnection = new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {if(tryConnect()) ((Timer)evt.getSource()).stop();}
-        }; new Timer(1000, tryConnection).start();
     }
 
 
