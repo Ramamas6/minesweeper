@@ -23,12 +23,10 @@ import javax.swing.Timer;
 public class Main extends JFrame{
 
     // General
-    int port = 10000;
-    String host = "LOCALHOST";
-    private Socket socket;
-    private DataOutputStream sortie;
     private GUI gui;
+    private Menu menu;
     private Matrix matrix;
+    private String pseudo = "";
 
     // Game
     private int gameStarted = 0; // Wether the game is started (0 = no, 1 = yes offline, 2 = yes online)
@@ -39,8 +37,11 @@ public class Main extends JFrame{
     private int seconds = 0; // Timer
 
     // Online mode
+    int port = 10000;
+    String host = "LOCALHOST";
+    private Socket socket;
+    private DataOutputStream sortie;
     private boolean online = false;
-    private String pseudo = "";
     private Map<String, Player> players = new HashMap<String, Player>();
 
     public static void main(String[] args) {if (args.length > 0) new Main(args[0]);else new Main("");}
@@ -50,11 +51,14 @@ public class Main extends JFrame{
         this.pseudo = s;
         if(this.pseudo == null || this.pseudo.isBlank() || !this.pseudo.matches("[a-zA-Z1-9]+")) this.pseudo = "guest";
         this.gui = new GUI(this); // Create gui
+        this.menu = new Menu(this); // Create menu
+        setJMenuBar(this.menu);
         this.minesLeft = this.matrix.getMines(); // Get number of mines
         this.gui.changeMinesLabel(this.minesLeft);
-        addComponentListener(new ComponentAdapter() {public void componentResized(ComponentEvent componentEvent) {gui.redimension(getSize(), currentLevel);}});
         setParameters(true); // Set default options
     }
+
+    public void changeTheme(Theme theme){this.gui.changeTheme(theme);}
 
     /**
      * **************** *
@@ -62,6 +66,9 @@ public class Main extends JFrame{
      * **************** *
     **/
 
+    /**
+     * Called when changing connection settings
+     */
     public void changeConnectionSettings() {
         JTextField hostField = new JTextField(this.host);
         JTextField portField = new JTextField(String.valueOf(this.port));
@@ -72,9 +79,8 @@ public class Main extends JFrame{
             this.port = Integer.parseInt(portField.getText());
         }
     }
-
     /**
-     * Called when the button connection is pressed
+     * Called when the button connection is pressed to connect to the server
      * Try to connect, or launch a timer to try again every seconds if the connection failed
      */
     public void switchOnline() {
@@ -97,17 +103,19 @@ public class Main extends JFrame{
             Runnable r = new ThreadClient(socket, this);
             new Thread(r).start();
             this.online = true;
-            this.gui.switchOnline(true);
+            gui.switchOnline(true);
+            menu.switchOnline(true);
             return true;
         } catch (IOException e) {return false;}
     }
-
-
+    /**
+     * Called when the button connection is pressed to disconnect to the server
+     */
     public void switchOffline() {
         this.online = false;
-        this.gui.switchOnline(false);
+        gui.switchOnline(false);
+        menu.switchOnline(false);
     }
-
     public void broadCastString(String txt){try{sortie.writeUTF(txt);}catch(IOException e){e.printStackTrace();}}
     public void broadCastInt(int value){try{sortie.writeInt(value);}catch(IOException e){e.printStackTrace();}}
 
@@ -117,8 +125,13 @@ public class Main extends JFrame{
      * **************** *
     **/
 
+    /**
+     * Set general parameters
+     * @param firstStart true only when Main is created
+     */
     private void setParameters(boolean firstStart) {
         if (firstStart) {
+            addComponentListener(new ComponentAdapter() {public void componentResized(ComponentEvent componentEvent) {gui.redimension(getSize(), currentLevel);}});
             setContentPane(gui);
             setDefaultCloseOperation(EXIT_ON_CLOSE);
         }
@@ -128,6 +141,9 @@ public class Main extends JFrame{
         setVisible(true);
     }
     private void setParameters() {this.setParameters(false);}
+    /**
+     * Quit the game and close the windows
+     */
     public void quit() {
         System.out.println("Bye-Bye");
         System.exit(0);
@@ -193,12 +209,20 @@ public class Main extends JFrame{
         this.players.get(player).score1 += n; // Actualise 1rst score
         this.players.get(player).score2 ++; // Actualise 2nd score (for equalities)
     }
-
+    /**
+     * Called on online mode, when a player loses
+     * @param player pseudo of the player
+     */
     public void loses(String player) {
         this.players.get(player).alive = false;
         this.gui.loses(player);
     }
 
+    /**
+     * 
+     * @param i
+     * @return
+     */
     public int changeBombs(int i) {
         if (minesLeft + i >= 0) {
             minesLeft += i;
@@ -258,17 +282,17 @@ public class Main extends JFrame{
         // Case Offline
         if(!this.online) {
             this.currentLevel = level;
-            this.gui.changeDifficulty(level.getLevel());
+            menu.changeDifficulty(level.getLevel());
             this.newGame();
         }
         // Case Online
         else if (this.gameStarted < 2) {
             if(this.currentLevel != level) {
                 this.currentLevel = level;
-                this.gui.changeDifficulty(this.currentLevel.getLevel());
+                menu.changeDifficulty(this.currentLevel.getLevel());
                 this.broadCastString("command_difficulty_" + level.getLevel());
             }
-        } else {this.gui.changeDifficulty(this.currentLevel.getLevel());} // Do nothing : online, but game already started
+        } else {menu.changeDifficulty(this.currentLevel.getLevel());} // Do nothing : online, but game already started
     }
 
         /**
@@ -329,7 +353,8 @@ public class Main extends JFrame{
                 else if (txt.isBlank()) {message = "Pseudo cannot be blank.\nPlease enter a valid pseudo:";}
                 else if (txt.matches("[a-zA-Z1-9]+")) {
                     run = false;
-                    this.gui.changePseudo(txt, this.pseudo);
+                    if(this.online) gui.changePlayer(txt, this.pseudo);  // If online: change the pseudo for the scores
+                    menu.changePseudo(txt);
                     this.pseudo = txt;
                 } else {message = "Pseudo cannot contains special characters.\nPlease enter a valid pseudo:";}
             }
@@ -368,5 +393,7 @@ public class Main extends JFrame{
     public int getDimY() {return this.matrix.getDimY();}
 
     public int getGameState() {return this.gameStarted;}
+
+    public int getMenuHeight() {return this.menu.getHeight();}
 
 }

@@ -1,0 +1,10 @@
+- Difficultée CUSTOM
+  Roulette souris
+  Elemens en classe (panels, ...)
+
+- Plusieurs jeux sur le serv
+  IHM serveur
+  IHM connection (client)
+
+- Messages
+
