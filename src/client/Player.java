@@ -1,10 +1,10 @@
 package src.client;
 
 public class Player {
-    String pseudo;
-    boolean alive = true;
-    int score1 = 0;
-    int score2 = 0;
+    private String pseudo;
+    private boolean alive = true;
+    private int score1 = 0;
+    private int score2 = 0;
 
     public Player(String pseudo, boolean alive, int score1, int score2)
     {
@@ -86,4 +86,18 @@ public class Player {
         return ret;
     }
 
+    /**
+     * GETTERS / SETTERS
+     */
+    public String getPseudo(){return this.pseudo;}
+    public boolean getAlive(){return this.alive;}
+    public int getScore1(){return this.score1;}
+    public int getScore2(){return this.score2;}
+
+    public void setAlive(boolean alive){this.alive = alive;}
+    public void setScore1(int score){this.score1 = score;}
+    public void setScore2(int score){this.score2 = score;}
+
+    public void addScore1(int score){this.score1 += score;}
+    public void addScore2(int score){this.score2 += score;}
 }

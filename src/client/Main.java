@@ -205,16 +205,16 @@ public class Main extends JFrame{
      */
     public void isClicked(String player, int x, int y, int n) {
         this.showCase(x,y,n); // Display the case
-        this.gui.changeScore(player,n); // Actualise 1rst score in gui
-        this.players.get(player).score1 += n; // Actualise 1rst score
-        this.players.get(player).score2 ++; // Actualise 2nd score (for equalities)
+        this.players.get(player).addScore1(n); // Actualise 1rst score
+        this.players.get(player).addScore2(1); // Actualise 2nd score (for equalities)
+        this.gui.changeScore(player,this.players.get(player).getScore1()); // Actualise 1rst score in gui
     }
     /**
      * Called on online mode, when a player loses
      * @param player pseudo of the player
      */
     public void loses(String player) {
-        this.players.get(player).alive = false;
+        this.players.get(player).setAlive(false);
         this.gui.loses(player);
     }
 
@@ -388,6 +388,7 @@ public class Main extends JFrame{
     }
     public Player getPlayer(String txt) {return this.players.get(txt);}
     public ArrayList<Player> getAllPlayers() {return new ArrayList<>(this.players.values());}
+    public int getPlayerNumber() {return this.players.size();}
 
     public int getDimX() {return this.matrix.getDimX();}
     public int getDimY() {return this.matrix.getDimY();}

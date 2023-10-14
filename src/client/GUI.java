@@ -5,10 +5,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Map;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 
 public class GUI extends JPanel implements ActionListener {
 
@@ -16,13 +14,9 @@ public class GUI extends JPanel implements ActionListener {
     // Main panels
     private JPanel titlePanel;
     private JPanel matrixPanel;
-    private JPanel leftPanel;
+    private LeftPanel leftPanel;
     private JPanel rightPanel;
     private JPanel bottomPanel;
-    private Map<String, JLabel> playersPanel = new HashMap<String, JLabel>(); // Names of players (left panel)
-    private Map<String, JLabel> scoresPanel = new HashMap<String, JLabel>(); // Scores of players (left panel)
-    private Map<String, JLabel> lifePanel = new HashMap<String, JLabel>(); // Icon of players (left panel)
-    GridBagConstraints cp = new GridBagConstraints(); // Grid constraint for left panel
 
     // Objects
     //private boolean[][] cases; // Matrix's cases
@@ -32,16 +26,10 @@ public class GUI extends JPanel implements ActionListener {
 
     // Dynamic things
     private JButton buttonQuit; // Quit game button
-    private JLabel minesLabel; // Label for number of mines left
-    private JLabel timerLabel; // Timer label
 
     // Others variables
     private int DIMX = 1;
     private int DIMY = 1;
-
-
-    // Color
-    private Color background = new Color(74, 117, 44);
 
     /*
      **************************************************************************
@@ -56,7 +44,7 @@ public class GUI extends JPanel implements ActionListener {
         this.main = main;
         // Create the main panels
         titlePanel = createTitlePanel();
-        leftPanel = createLeftPanel();
+        leftPanel = new LeftPanel(this.theme.getBackground());
         rightPanel = createRightPanel();
         bottomPanel = createBottomPanel();
         // Place the main panels
@@ -71,76 +59,30 @@ public class GUI extends JPanel implements ActionListener {
         // Start timer
     }
 
-    JPanel createTitlePanel() {
+    private JPanel createTitlePanel() {
         JPanel panel = new JPanel();
         panel.add(new JLabel("Minesweeper"));
         panel.setSize(WIDTH, 200);
-        panel.setBackground(background);
+        panel.setBackground(this.theme.getBackground());
         return panel;
     }
-    JPanel createLeftPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
-        // Game
-        cp.gridx = 0;
-        cp.gridy = 0;
-        JLabel temp1 = new JLabel("Game:");
-        temp1.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
-        panel.add(temp1, cp);
-            // Time
-            cp.gridy ++;
-            cp.gridwidth = 2;
-            panel.add(new JLabel("Time: "), cp);
-            cp.gridwidth = 1;
-            cp.gridx = 2;
-            timerLabel = new JLabel("0");
-            panel.add(timerLabel, cp);
-            // Mines
-            cp.gridy ++;
-            cp.gridwidth = 2;
-            cp.gridx = 0;
-            panel.add(new JLabel("Mines left: "), cp);
-            minesLabel = new JLabel("0");
-            cp.gridwidth = 1;
-            cp.gridx = 2;
-            panel.add(minesLabel, cp);
-        // Players
-        cp.gridy ++;
-        cp.gridx = 0;
-        cp.gridwidth = 3;
-        panel.add(new JLabel("   "), cp);
-            // Case offline
-        if(!this.main.getOnline()) {}
-            // Case online
-        else {
-            cp.gridy ++;
-            cp.gridwidth = 2;
-            JLabel temp2 = new JLabel("Players:");
-            temp2.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
-            panel.add(temp2, cp);
-        }
-        // End
-        cp.gridwidth = 1;
-        cp.gridy ++;
-        panel.setBackground(background);
-        return panel;
-    }
-    JPanel createRightPanel () {
+
+    private JPanel createRightPanel () {
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
         // END
-        panel.setBackground(background);
+        panel.setBackground(this.theme.getBackground());
         return panel;
     }
-    JPanel createBottomPanel () {
+    private JPanel createBottomPanel () {
         JPanel panel = new JPanel();
         buttonQuit = new JButton("QUIT");
         buttonQuit.addActionListener(this);
         panel.add(buttonQuit);
-        panel.setBackground(background);
+        panel.setBackground(this.theme.getBackground());
         return panel;
     }
 
@@ -161,8 +103,7 @@ public class GUI extends JPanel implements ActionListener {
         add(matrixPanel, BorderLayout.CENTER); // Add matrix panel in the screen
         // Case online
         if(this.main.getOnline()) {
-            for (Map.Entry<String,JLabel> entry : scoresPanel.entrySet()) entry.getValue().setText("0");
-            for (Map.Entry<String,JLabel> entry : lifePanel.entrySet()) entry.getValue().setIcon(new ImageIcon("./assets/void.png"));
+            this.leftPanel.newGame();
         }
     }
     void newGame(int x, int y) {
@@ -186,7 +127,7 @@ public class GUI extends JPanel implements ActionListener {
             }
         }
         Case.RESIZE(DIMX, DIMY);
-        panel.setBackground(background);
+        panel.setBackground(this.theme.getBackground());
         return panel;
     }
 
@@ -211,13 +152,13 @@ public class GUI extends JPanel implements ActionListener {
     }
 
     public void displayClassement() {
-        if(this.main.getOnline() && playersPanel.size() > 1) {
+        if(this.main.getOnline() && main.getPlayerNumber() > 1) {
             // Case 2 players
-            if(playersPanel.size() == 2) {
+            if(main.getPlayerNumber() == 2) {
                 // Get 2nd player
-                String[] temp = scoresPanel.keySet().toArray(new String[2]);
-                String player = temp[1];
-                if(player.equals(this.main.getPseudo())) player = temp[0];
+                ArrayList<Player> players = main.getAllPlayers();
+                String player = players.get(0).getPseudo();
+                if(player.equals(this.main.getPseudo())) player = players.get(1).getPseudo();
                 // Display the final box
                 String[] texts = this.main.getPlayer(this.main.getPseudo()).compareAndReturnString(this.main.getPlayer(player));
                 JOptionPane.showMessageDialog(this,texts[1],texts[0],JOptionPane.INFORMATION_MESSAGE);
@@ -263,21 +204,15 @@ public class GUI extends JPanel implements ActionListener {
     public void switchOnline(boolean isOnline) {
         // TO DO : Change menu
         // Change left panel
-        remove(leftPanel); // Remove the main panel from the screen
-        this.leftPanel = createLeftPanel(); // Recreate matrix panel
-        add(leftPanel, BorderLayout.WEST); // Add matrix panel in the screen
+        remove(leftPanel);
+        leftPanel.switchOnline(isOnline);
+        add(leftPanel, BorderLayout.WEST);
         // TO DO : Change right panel
     }
 
-    void changeScore(String player, int value) {
-        int n = Integer.parseInt(this.scoresPanel.get(player).getText());
-        this.scoresPanel.get(player).setText(String.valueOf(n+value));
-    }
+    void changeScore(String player, int value) {this.leftPanel.changeScore(player,value);}
 
-    void loses(String player) {
-        System.out.println(player + " loses");
-        this.lifePanel.get(player).setIcon(new ImageIcon("./assets/skull.png"));
-    }
+    void loses(String player) {this.leftPanel.loses(player);}
 
     /**
      * FOR CHANGE DISPLAY
@@ -300,44 +235,12 @@ public class GUI extends JPanel implements ActionListener {
     }
     public Theme getTheme(){return this.theme;}
 
-    public void changeTimer(int seconds) {timerLabel.setText(String.valueOf(seconds));}
-    
-    public void changeMinesLabel(int minesLeft) {if(minesLeft >= 0) minesLabel.setText(String.valueOf(minesLeft));}
-    
-    public void changePlayer(String newPseudo, String oldPseudo) {
-        this.playersPanel.put(newPseudo, this.playersPanel.remove(oldPseudo)); // Change the key for player
-        this.scoresPanel.put(newPseudo, this.scoresPanel.remove(oldPseudo)); // Change the key for score
-        this.lifePanel.put(newPseudo, this.lifePanel.remove(oldPseudo)); // Change the key for life indicator
-        this.playersPanel.get(newPseudo).setText(newPseudo); // Change the text
-    }
-    public void addPlayer(String player) {
-        cp.gridy ++;
-        // Player label
-        cp.gridx = 1;
-        JLabel pLabel = new JLabel(player + " ");
-        this.playersPanel.put(player, pLabel);
-        leftPanel.add(pLabel, cp);
-        // Score label
-        cp.gridx = 2;
-        JLabel sLabel = new JLabel("0");
-        this.scoresPanel.put(player, sLabel);
-        leftPanel.add(sLabel, cp);
-        // Life label
-        cp.gridx = 0;
-        JLabel lLabel = new JLabel(new ImageIcon("./assets/void.png"));
-        this.lifePanel.put(player, lLabel);
-        leftPanel.add(lLabel, cp);
+    public void changeTimer(int seconds) {leftPanel.changeTimer(seconds);}
+    public void changeMinesLabel(int minesLeft) {if(minesLeft >= 0) this.leftPanel.changeMinesLabel(minesLeft);}
+    public void changePlayer(String newPseudo, String oldPseudo) {leftPanel.changePlayer(newPseudo, oldPseudo);}
 
-        leftPanel.revalidate();
-    }
-    public void removePlayer(String player) {
-        leftPanel.remove(this.playersPanel.get(player));
-        leftPanel.remove(this.scoresPanel.get(player));
-        cp.gridy --;
-        this.playersPanel.remove(player);
-        this.scoresPanel.remove(player);
-        leftPanel.revalidate();
-    }
+    public void addPlayer(String player) {leftPanel.addPlayer(player);}
+    public void removePlayer(String player) {leftPanel.removePlayer(player);}
 
     /**
      * 
