@@ -8,103 +8,102 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ThreadPlayer implements Runnable {
-    private static Server server;
-    private Socket player; // Communication socket
-    private int index;
-    private boolean run = true;
 
+    // Static data
+    private static Server server;
     private static List<String> players = new ArrayList<String>();
     private static int nbPlayers = 0; // number of players
 
+    // Private data
+    private Socket player; // Communication socket
+    private DataInputStream entree; // Listening stream
+    private int index; // ID of the player in the server
+    private boolean run = true;
     private String pseudo = "";
     private boolean alive = true;
-    private String command = ""; // Command
 
     public ThreadPlayer(Socket socket, int index) {
-        player = socket;
+        this.player = socket;
         this.index = index;
     }
 
     public static void SETSERV(Server serv) {server = serv;}
 
     public void run () {
+        String command = "";
         try {
-        // Streams creations
-        DataInputStream entree = new DataInputStream(player.getInputStream());
-        // Add the player
-        command = entree.readUTF();
-        if(command.equals("command_quit")) {this.quit();}
-        else if(players.contains(command)) {
-            int temp = nbPlayers;
-            while(players.contains("Guest" + String.valueOf(temp))) temp ++;
-            server.broadcastString("Guest" + String.valueOf(temp), index);
-            command = "Guest" + String.valueOf(temp);
-        } else server.broadcastString("command_ok", index);
-        pseudo = command;
+            // Streams creations
+            this.entree = new DataInputStream(player.getInputStream());
+            // Add the player
+            command = this.entree.readUTF();
+            if(command.equals("command_quit")) {this.quit();}
+            else if(players.contains(command)) {
+                int temp = nbPlayers;
+                while(players.contains("Guest" + String.valueOf(temp))) temp ++;
+                server.broadcastString("Guest" + String.valueOf(temp), this.index);
+                command = "Guest" + String.valueOf(temp);
+            } else server.broadcastString("command_ok", this.index);
+            this.pseudo = command;
 
-        System.out.println(pseudo+" connected");
-        players.add(pseudo);
-        // Send connected players
-        server.broadcastInt(nbPlayers, index);
-        for(int i = 0; i < nbPlayers; i ++) server.broadcastString(players.get(i), index);
-        // Add the new player
-        nbPlayers ++;
-        server.broadcastAllString(pseudo);
-        server.broadcastString("command_difficulty_" + server.getDifficulty().getLevel(), this.index);
+            System.out.println(this.pseudo+" connected");
+            players.add(this.pseudo);
+            // Send connected players
+            server.broadcastInt(nbPlayers, this.index);
+            for(int i = 0; i < nbPlayers; i ++) {System.out.println(players.get(i));server.broadcastString(players.get(i), this.index);}
+            // Add the new player
+            nbPlayers ++;
+            server.broadcastAllString(this.pseudo);
+            server.broadcastString("command_difficulty_" + server.getDifficulty().getLevel(), this.index);
 
-        // Connected to the game
-        while(run) {
-            command = entree.readUTF();
-            // IN PREPARATION
-            if(server.getState() == 0) switch (command) {
-                case "command_difficulty_easy":
-                    server.setDifficulty(Level.EASY);
-                    break;
-                case "command_difficulty_medium":
-                    server.setDifficulty(Level.MEDIUM);
-                    break;
-                case "command_difficulty_hard":
-                    server.setDifficulty(Level.HARD);
-                    break;
-                case "command_difficulty_diabolical":
-                    server.setDifficulty(Level.DIABOLICAL);
-                    break;
-                case "command_start_game":
-                    server.startGame();
-                    break;
-                case "command_quit":
-                    this.quit();
-                    break;
-                case "command_restart":
-                    this.alive = true;
-                    break;
+            // Connected to the game
+            while(this.run) {
+                command = this.entree.readUTF();
+                if(command.equals("command_quit")) {this.quit();}
+                // IN PREPARATION
+                else if(server.getState() == 0) switch (command) {
+                    case "command_difficulty_easy":
+                        server.setDifficulty(Level.EASY);
+                        break;
+                    case "command_difficulty_medium":
+                        server.setDifficulty(Level.MEDIUM);
+                        break;
+                    case "command_difficulty_hard":
+                        server.setDifficulty(Level.HARD);
+                        break;
+                    case "command_difficulty_diabolical":
+                        server.setDifficulty(Level.DIABOLICAL);
+                        break;
+                    case "command_start_game":
+                        server.startGame();
+                        break;
+                    case "command_restart":
+                        this.alive = true;
+                        break;
+                }
+                // IN GAME
+                else if(server.getState() == 2) {
+                    String[] temp = command.split("_");
+                    if(temp[0].equals("case") && this.alive) // Player reveal case temp[1], temp[2]
+                        this.alive = server.caseRevealed(this.pseudo, Integer.parseInt(temp[1]), Integer.parseInt(temp[2]));
+                    else if (temp[0].equals("message")) { // Player temp[1] send message temp[2]
+                    }
+                }
             }
-            // IN GAME
-            else if(server.getState() == 2) {
-                String[] temp = command.split("_");
-                if(temp[0].equals("case") && this.alive) // Player reveal case temp[1], temp[2]
-                    this.alive = server.caseRevealed(this.pseudo, Integer.parseInt(temp[1]), Integer.parseInt(temp[2]));
-                else if (temp[0].equals("message")) { // Player temp[1] send message temp[2]
-                }     
-            }
-        }
-        // End
-        entree.close();
-        player.close();
         } catch(IOException e){
             this.quit();
         }
-
     }
 
-    public void quit() {
+    private void quit() {
         this.run = false;
-        server.removeSortie(index);
-        if(!pseudo.equals("")) {
+        server.broadcastString("command_quit", this.index);
+        if(!pseudo.equals("")){
             nbPlayers --;
-            players.remove(players.indexOf(pseudo));
-            server.broadcastAllString(pseudo);
+            if(server.getState() == 0) server.broadcastAllString(this.pseudo); // Quit during preparation
+            else if (server.getState() > 0) server.broadcastAllString("command_leave_" + this.pseudo); // Quit during waiting time or game
+            players.remove(players.indexOf(this.pseudo));
         }
-        try {player.close();} catch(IOException ee){ee.printStackTrace();}
+        server.removeSortie(this.index);
+        try {this.player.close();this.entree.close();} catch(IOException ee){ee.printStackTrace();}
     }
 }

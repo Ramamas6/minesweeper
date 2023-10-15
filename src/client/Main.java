@@ -33,7 +33,7 @@ public class Main extends JFrame{
     private boolean authorizedClick = true; // Wether click on cases is othorized
     private Level currentLevel = Level.MEDIUM;
     private int casesLeft; // Number of non-mines left
-    private int minesLeft; // Number of mines left
+    
     private int seconds = 0; // Timer
 
     // Online mode
@@ -50,11 +50,9 @@ public class Main extends JFrame{
         this.matrix = new Matrix();
         this.pseudo = s;
         if(this.pseudo == null || this.pseudo.isBlank() || !this.pseudo.matches("[a-zA-Z1-9]+")) this.pseudo = "guest";
-        this.gui = new GUI(this); // Create gui
+        this.gui = new GUI(this, this.matrix.getMines()); // Create gui
         this.menu = new Menu(this); // Create menu
         setJMenuBar(this.menu);
-        this.minesLeft = this.matrix.getMines(); // Get number of mines
-        this.gui.changeMinesLabel(this.minesLeft);
         setParameters(true); // Set default options
     }
 
@@ -111,11 +109,17 @@ public class Main extends JFrame{
     /**
      * Called when the button connection is pressed to disconnect to the server
      */
-    public void switchOffline() {
+    public void switchOffline(boolean broadcastServer) {
         this.online = false;
+        if(broadcastServer) this.broadCastString("command_quit");
+        try{
+            socket.close();
+            sortie.close();
+        } catch (IOException e) {}
         gui.switchOnline(false);
         menu.switchOnline(false);
     }
+    public void switchOffline(){this.switchOffline(true);}
     public void broadCastString(String txt){try{sortie.writeUTF(txt);}catch(IOException e){e.printStackTrace();}}
     public void broadCastInt(int value){try{sortie.writeInt(value);}catch(IOException e){e.printStackTrace();}}
 
@@ -218,19 +222,7 @@ public class Main extends JFrame{
         this.gui.loses(player);
     }
 
-    /**
-     * 
-     * @param i
-     * @return
-     */
-    public int changeBombs(int i) {
-        if (minesLeft + i >= 0) {
-            minesLeft += i;
-            this.gui.changeMinesLabel(minesLeft);
-            return minesLeft;
-        }
-        else return -1;
-    }
+
 
     private void timer() {
         ActionListener taskPerformer = new ActionListener() {
@@ -252,9 +244,7 @@ public class Main extends JFrame{
             this.gameStarted = 0; // Wait for the first click
             this.authorizedClick = true; // Authorize to click
             this.matrix.newMatrix(currentLevel); // Create a new array in Matrix
-            this.minesLeft = this.matrix.getMines(); // Get number of mines
-            this.gui.changeMinesLabel(this.minesLeft);
-            gui.newGame();
+            gui.newGame(this.matrix.getMines());
             this.setParameters();
         }
         // Case start game Online
@@ -271,10 +261,8 @@ public class Main extends JFrame{
         this.gameStarted = 2;
         this.seconds = 0;
         this.matrix.newMatrix(currentLevel, dimx, dimy, minesNumber);
-        this.minesLeft = minesNumber;
         for (Map.Entry<String,Player> entry : this.players.entrySet()) entry.getValue().reset();
-        this.gui.changeMinesLabel(minesNumber);
-        this.gui.newGame();
+        this.gui.newGame(minesNumber);
         this.setParameters();
     }
 
@@ -361,6 +349,7 @@ public class Main extends JFrame{
         }
         // Case Online
         else if (this.gameStarted < 2) {
+            
         } else {} // Do nothing : online, but game already started
     }
 

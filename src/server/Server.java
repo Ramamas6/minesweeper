@@ -52,12 +52,10 @@ public class Server {
             e.printStackTrace();
         }
     }
-
     public static void main (String [] args) {
         System.out.println("Server Started");
         new Server();
     }
-
     public void startGame () {
         // Set first case discovered
         this.gameState = 1;
@@ -76,16 +74,14 @@ public class Server {
         // Send first case (it's always a 0)
         broadcastAllInt(x);
         broadcastAllInt(y);
-        // Wait 3 secondes
+        // Wait some secondes
         try {TimeUnit.SECONDS.sleep(1);} catch (InterruptedException e) {e.printStackTrace();}
         // Start game
         this.gameState = 2;
         this.matrix.display();
         broadcastAllString("command_start");
     }
-
-    /**
-     * 
+    /** Called when a case is revealed by a player
      * @param player
      * @param x
      * @param y
@@ -109,14 +105,11 @@ public class Server {
         }
         else return true;
     }
-
     public void endGame() {
         this.gameState = 0;
         this.broadcastAllString("command_endgame");
     }
-
     public void removeSortie (int index) {sorties.remove(index);}
-
     public void setDifficulty (Level level) {
         if(this.gameState < 1) {
             currentLevel = level;
@@ -124,7 +117,6 @@ public class Server {
         }
     }
     public Level getDifficulty () {return this.currentLevel;}
-
     public int getState() {return this.gameState;}
     public void setState(int state) {this.gameState = state;}
 

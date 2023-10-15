@@ -10,7 +10,6 @@ import java.util.Collections;
 
 public class GUI extends JPanel implements ActionListener {
 
-    
     // Main panels
     private JPanel titlePanel;
     private JPanel matrixPanel;
@@ -19,13 +18,13 @@ public class GUI extends JPanel implements ActionListener {
     private JPanel bottomPanel;
 
     // Objects
-    //private boolean[][] cases; // Matrix's cases
     private Main main; // Main object
     private Case[][] grille; // Array of Case
     private Theme theme = Theme.DEFAULT; // General graphic theme
 
     // Dynamic things
     private JButton buttonQuit; // Quit game button
+    private int minesLeft; // Number of mines left
 
     // Others variables
     private int DIMX = 1;
@@ -39,12 +38,14 @@ public class GUI extends JPanel implements ActionListener {
      **************************************************************************
     */
 
-    GUI(Main main) {
+    GUI(Main main, int minesNumber) {
         // Get remote objects
         this.main = main;
+        this.minesLeft = minesNumber;
         // Create the main panels
         titlePanel = createTitlePanel();
         leftPanel = new LeftPanel(this.theme.getBackground());
+        leftPanel.changeMinesLabel(this.minesLeft);
         rightPanel = createRightPanel();
         bottomPanel = createBottomPanel();
         // Place the main panels
@@ -97,14 +98,19 @@ public class GUI extends JPanel implements ActionListener {
     /**
      * Reset the variables for a new game
      */
-    void newGame() {
+    void newGame(int minesNumber) {
+        // MatrixPanel
         remove(matrixPanel); // Remove the main panel from the screen
         this.matrixPanel = createMatrixPanel(); // Recreate matrix panel
         add(matrixPanel, BorderLayout.CENTER); // Add matrix panel in the screen
+        // LeftPanel
+        leftPanel.changeMinesLabel(minesNumber);
+        this.minesLeft = minesNumber;
         // Case online
         if(this.main.getOnline()) {
             this.leftPanel.newGame();
         }
+
     }
     void newGame(int x, int y) {
         this.grille[x][y].showCase(0);
@@ -228,15 +234,10 @@ public class GUI extends JPanel implements ActionListener {
         bottomPanel.setBackground(theme.getBackground());
         // Change cases
         Case.CHANGETHEME(theme);
-        // // TODO: Change cases
-        // for(int i = 0; i < this.dimX; i ++)
-        //     for(int j = 0; j < this.dimY; j ++)
-        //         this.grille[i][j].changeTheme
     }
     public Theme getTheme(){return this.theme;}
 
     public void changeTimer(int seconds) {leftPanel.changeTimer(seconds);}
-    public void changeMinesLabel(int minesLeft) {if(minesLeft >= 0) this.leftPanel.changeMinesLabel(minesLeft);}
     public void changePlayer(String newPseudo, String oldPseudo) {leftPanel.changePlayer(newPseudo, oldPseudo);}
 
     public void addPlayer(String player) {leftPanel.addPlayer(player);}
@@ -254,7 +255,14 @@ public class GUI extends JPanel implements ActionListener {
 
     public boolean getAuthorizedClick() {return main.getAuthorizedClick();}
 
-    public int changeBombs(int i) {return this.main.changeBombs(i);}
+    public int changeBombs(int i) {
+        if (this.minesLeft + i >= 0) {
+            this.minesLeft += i;
+            this.leftPanel.changeMinesLabel(this.minesLeft);
+            return this.minesLeft;
+        }
+        else return -1;
+    }
 
     public void isClicked(int x, int y) {this.main.isClicked(x, y);}
 

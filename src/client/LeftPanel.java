@@ -13,7 +13,9 @@ import javax.swing.JPanel;
 
 public class LeftPanel extends JPanel {
 
-    GridBagConstraints cp = new GridBagConstraints(); // Grid constraint for left panel
+    private GridBagLayout gridBagLayout ;
+    private GridBagConstraints cp = new GridBagConstraints(); // Grid constraint for left panel
+    private int cFlag; // gridy after the game part
 
     // Game
     private JLabel minesLabel; // Label for number of mines left
@@ -26,7 +28,8 @@ public class LeftPanel extends JPanel {
     private Map<String, JLabel> aliveLabels = new HashMap<String, JLabel>(); // Icon of players (left panel)
 
     public LeftPanel(Color background) {
-        this.setLayout(new GridBagLayout());
+        this.gridBagLayout = new GridBagLayout();
+        this.setLayout(this.gridBagLayout);
         // Game
         cp.gridx = 0;
         cp.gridy = 0;
@@ -55,8 +58,9 @@ public class LeftPanel extends JPanel {
         cp.gridx = 0;
         cp.gridwidth = 3;
         this.add(new JLabel("   "), cp);
-        cp.gridwidth = 1;
+        cp.gridwidth = 3;
         cp.gridy ++;
+        this.cFlag = cp.gridy;
         this.playerPanel = new JLabel("Players:");
         this.playerPanel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
         this.setBackground(background);
@@ -68,21 +72,24 @@ public class LeftPanel extends JPanel {
     public void switchOnline(boolean isOnline) {
         // Case offline
         if(!isOnline) {
-            cp.gridy --;
             this.remove(this.playerPanel);
             for (Map.Entry<String, JLabel> entry : this.playerLabels.entrySet()) {
                 String player = entry.getKey();
-                cp.gridy --;
                 this.remove(this.playerLabels.get(player));
                 this.remove(this.scoreLabels.get(player));
                 this.remove(this.aliveLabels.get(player));
             }
+            this.playerLabels.clear();
+            this.scoreLabels.clear();
+            this.aliveLabels.clear();
+            System.out.println(this.playerLabels.size());
         }
         // Case online
         else {
             cp.gridwidth = 2;
+            cp.gridy = this.cFlag;
+            cp.gridx = 0;
             this.add(this.playerPanel, cp);
-            cp.gridy ++;
             cp.gridwidth = 1;
         }
     }
@@ -114,33 +121,51 @@ public class LeftPanel extends JPanel {
     }
 
     public void addPlayer(String player) {
-        cp.gridy ++;
-        // Player label
-        cp.gridx = 1;
-        JLabel pLabel = new JLabel(player + " ");
-        this.playerLabels.put(player, pLabel);
-        this.add(pLabel, cp);
-        // Score label
-        cp.gridx = 2;
-        JLabel sLabel = new JLabel("0");
-        this.scoreLabels.put(player, sLabel);
-        this.add(sLabel, cp);
+        cp.gridy = this.cFlag + this.playerLabels.size() + 1;
         // Life label
         cp.gridx = 0;
         JLabel lLabel = new JLabel(new ImageIcon("./assets/void.png"));
         this.aliveLabels.put(player, lLabel);
-        this.add(lLabel, cp);
-
+        this.add(this.aliveLabels.get(player), cp);
+        // Player label
+        cp.gridx = 1;
+        JLabel pLabel = new JLabel(player + " ");
+        this.playerLabels.put(player, pLabel);
+        this.add(this.playerLabels.get(player), cp);
+        // Score label
+        cp.gridx = 2;
+        JLabel sLabel = new JLabel("0");
+        this.scoreLabels.put(player, sLabel);
+        this.add(this.scoreLabels.get(player), cp);
+        // End: display
         this.revalidate();
+        this.repaint();
     }
 
     public void removePlayer(String player) {
+        // Remove the player
         this.remove(this.playerLabels.get(player));
         this.remove(this.scoreLabels.get(player));
-        cp.gridy --;
+        this.remove(this.aliveLabels.get(player));
         this.playerLabels.remove(player);
         this.scoreLabels.remove(player);
+        this.aliveLabels.remove(player);
+        // Change the constraints of all the other players
+        cp.gridwidth = 1;
+        cp.gridy = this.cFlag;
+        for (Map.Entry<String, JLabel> entry : this.playerLabels.entrySet()) {
+            String txt = entry.getKey();
+            cp.gridy ++;
+            cp.gridx = 0;
+            this.gridBagLayout.setConstraints(this.aliveLabels.get(txt), cp);
+            cp.gridx = 1;
+            this.gridBagLayout.setConstraints(this.playerLabels.get(txt), cp);
+            cp.gridx = 2;
+            this.gridBagLayout.setConstraints(this.scoreLabels.get(txt), cp);
+        }
+        // Refresh display
         this.revalidate();
+        this.repaint();
     }
     
 }
