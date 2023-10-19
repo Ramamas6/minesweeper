@@ -20,18 +20,42 @@ import src.common.Level;
 
 public class Menu extends JMenuBar implements ActionListener {
     private Main main;
+    private JLabel[] separators = new JLabel[4];
+    // Online button
     private JButton onlineMenu;
     private JButton onLine;
     private JButton offLine;
+    // Difficulty
     private JMenu difficultyMenu;
     private List<JMenuItem> difficultiesMenuItem;
     private Level[] lvls = { Level.EASY, Level.MEDIUM, Level.HARD, Level.DIABOLICAL }; // Possible levels
-    private JButton newMenu;
+    // Settings
+    private JMenu settingsMenu;
     private JMenuItem connectionMenu;
     private List<JMenuItem> themesMenuItem;
     private Theme[] themes = { Theme.DEFAULT, Theme.GOOGLE, Theme.GRAY, Theme.LIGHT, Theme.DARK };
+    // New game
+    private JButton newMenu;
+    // Player
     private JButton iconUser;
     private JButton menuPseudo;
+
+    public void changeTheme(Theme theme) {
+        this.setBackground(theme.getBackgroundMenu());
+        this.onlineMenu.setForeground(theme.textColor());
+        this.onLine.setForeground(theme.textColor());
+        this.offLine.setForeground(theme.textColor());
+        this.difficultyMenu.setForeground(theme.textColor());
+        this.settingsMenu.setForeground(theme.textColor());
+        this.newMenu.setForeground(theme.textColor());
+        this.menuPseudo.setForeground(theme.textColor());
+        for (int i = 0; i < separators.length; i ++) separators[i].setForeground(theme.textColor());
+        // User picture
+        Color color = theme.getBackgroundMenu();
+        if(color.getBlue() + color.getGreen() + color.getRed() < 100)
+            iconUser.setIcon(new ImageIcon("./assets/user2.png"));
+        else iconUser.setIcon(new ImageIcon("./assets/user.png"));
+    }
 
     public Menu(Main main) {
         this.main = main;
@@ -59,7 +83,8 @@ public class Menu extends JMenuBar implements ActionListener {
             offLine.addActionListener(this);
             offLine.setMaximumSize(new Dimension(58, 26));
         this.add(offLine);
-        this.add(new JLabel(" | "));
+        separators[0] = new JLabel("   | ");
+        this.add(separators[0]);
         // Difficulty
         difficultyMenu = new JMenu("Difficulty Medium");
         difficultiesMenuItem = new ArrayList<JMenuItem>();
@@ -69,9 +94,10 @@ public class Menu extends JMenuBar implements ActionListener {
             difficultiesMenuItem.get(i).addActionListener(this);
         }
         this.add(difficultyMenu);
-        this.add(new JLabel(" | "));
+        separators[1] = new JLabel(" | ");
+        this.add(separators[1]);
         // Settings
-        JMenu settingsMenu = new JMenu("Settings");
+        settingsMenu = new JMenu("Settings");
             // Colors
             JMenu themeMenu = new JMenu("Theme");
             themesMenuItem = new ArrayList<JMenuItem>();
@@ -86,7 +112,8 @@ public class Menu extends JMenuBar implements ActionListener {
             connectionMenu.addActionListener(this);
             settingsMenu.add(connectionMenu);
         this.add(settingsMenu);
-        this.add(new JLabel("   | "));
+        separators[2] = new JLabel("   | ");
+        this.add(separators[2]);
         // New game
         newMenu = new JButton("New game");
         newMenu.setContentAreaFilled(false);
@@ -94,7 +121,8 @@ public class Menu extends JMenuBar implements ActionListener {
         newMenu.setFocusable(false);
         newMenu.addActionListener(this);
         this.add(newMenu);
-        this.add(new JLabel("|"));
+        separators[3] = new JLabel("|");
+        this.add(separators[3]);
         // ICON PSEUDO
         this.add(Box.createHorizontalGlue());
         iconUser = new JButton(new ImageIcon("./assets/user.png"));
@@ -165,4 +193,6 @@ public class Menu extends JMenuBar implements ActionListener {
      */
     public void changeDifficulty(String level) {difficultyMenu.setText("Difficulty " + level);}
     public void changePseudo(String newPseudo) {this.menuPseudo.setText(newPseudo);}
+
+
 }

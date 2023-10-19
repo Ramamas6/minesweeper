@@ -18,8 +18,11 @@ public class LeftPanel extends JPanel {
     private int cFlag; // gridy after the game part
 
     // Game
-    private JLabel minesLabel; // Label for number of mines left
+    private JLabel gameText;
+    private JLabel timerText;
     private JLabel timerLabel; // Timer label
+    private JLabel minesText;
+    private JLabel minesLabel; // Label for number of mines left
     private JLabel playerPanel; // Label "Players" (for online mode)
 
     // Players (case online)
@@ -33,13 +36,14 @@ public class LeftPanel extends JPanel {
         // Game
         cp.gridx = 0;
         cp.gridy = 0;
-        JLabel temp1 = new JLabel("Game:");
-        temp1.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
-        this.add(temp1, cp);
+        gameText = new JLabel("Game:");
+        gameText.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+        this.add(gameText, cp);
             // Time
             cp.gridy ++;
             cp.gridwidth = 2;
-            this.add(new JLabel("Time: "), cp);
+            timerText = new JLabel("Time: ");
+            this.add(timerText, cp);
             cp.gridwidth = 1;
             cp.gridx = 2;
             timerLabel = new JLabel("0");
@@ -48,7 +52,8 @@ public class LeftPanel extends JPanel {
             cp.gridy ++;
             cp.gridwidth = 2;
             cp.gridx = 0;
-            this.add(new JLabel("Mines left: "), cp);
+            minesText = new JLabel("Mines left: ");
+            this.add(minesText, cp);
             minesLabel = new JLabel("0");
             cp.gridwidth = 1;
             cp.gridx = 2;
@@ -94,12 +99,21 @@ public class LeftPanel extends JPanel {
         }
     }
 
+    public void changeTheme(Theme theme) {
+        this.gameText.setForeground(theme.textColor());
+        this.timerText.setForeground(theme.textColor());
+        this.timerLabel.setForeground(theme.textColor());
+        this.minesText.setForeground(theme.textColor());
+        this.minesLabel.setForeground(theme.textColor());
+        this.playerPanel.setForeground(theme.textColor());
+        this.setBackground(theme.getBackground());
+    }
+
     /**
      * ONLINE GAMES
      */
 
-    /**
-     * Reset the players variables for an online game
+    /** Reset the players variables for an online game
      */
     public void newGame() {
         for (Map.Entry<String,JLabel> entry : scoreLabels.entrySet()) entry.getValue().setText("0");

@@ -3,6 +3,8 @@ package src.client;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -43,8 +45,6 @@ public class Case extends JPanel implements MouseListener {
         super.paintComponent(gc);
         setPreferredSize(new Dimension(DIMX, DIMY));
         // Background
-        //if (isClicked == 3) gc.setColor(new Color(215+15*((x+y)%2), 184+10*((x+y)%2), 153+6*((x+y)%2)));
-        //else gc.setColor(new Color(0, 190+20*((x+y)%2), 50));
         if(isClicked == 3) gc.setColor((x+y)%2 == 0 ? THEME.getDiscover():THEME.getDiscoverBis());
         else gc.setColor((x+y)%2 == 0 ? THEME.getUncover():THEME.getUncoverBis());
         gc.fillRect(0,0, DIMX, DIMY);
@@ -60,11 +60,12 @@ public class Case extends JPanel implements MouseListener {
         if (isClicked == 3 && !isMine) {
             gc.setFont(new Font("TimesRoman", Font.PLAIN, getHeight()));
             gc.setColor(THEME.getNumber(txtInt));
+            String txt = (txtInt == 0 ? " ":String.valueOf(txtInt));
             int textSize = gc.getFont().getSize();
-            int textHeight = getFontMetrics(getFont()).getHeight();
+            int textHeight = (int) getStringBounds(gc, txt).getHeight();
             int dimX = (this.getWidth() - textSize/2)/2;
-            int dimY = this.getHeight() - textHeight / 2;
-            gc.drawString((txtInt == 0 ? " ":String.valueOf(txtInt)),dimX,dimY);
+            int dimY = this.getHeight() / 2 + textHeight / 2 - 1;
+            gc.drawString(txt,dimX,dimY);
         }
         // Draw image
         else if (isClicked != 0) {
@@ -73,6 +74,14 @@ public class Case extends JPanel implements MouseListener {
             int dimy = (DIMY - dim) / 2;
             gc.drawImage(this.image, dimx, dimy, dim, dim, this);
         }
+    }
+    private Rectangle getStringBounds(Graphics g, String str)
+    {
+    Graphics2D g2 = (Graphics2D) g;
+    FontRenderContext frc = g2.getFontRenderContext();
+    GlyphVector gv = g2.getFont().createGlyphVector(frc, str);
+    Rectangle r = gv.getPixelBounds(null, 0, 0);
+    return r;
     }
 
     /**

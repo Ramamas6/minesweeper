@@ -25,6 +25,7 @@ public class GUI extends JPanel implements ActionListener {
     // Dynamic things
     private JButton buttonQuit; // Quit game button
     private int minesLeft; // Number of mines left
+    private JLabel titleLabel;
 
     // Others variables
     private int DIMX = 1;
@@ -62,7 +63,8 @@ public class GUI extends JPanel implements ActionListener {
 
     private JPanel createTitlePanel() {
         JPanel panel = new JPanel();
-        panel.add(new JLabel("Minesweeper"));
+        titleLabel = new JLabel("Minesweeper");
+        panel.add(titleLabel);
         panel.setSize(WIDTH, 200);
         panel.setBackground(this.theme.getBackground());
         return panel;
@@ -228,8 +230,9 @@ public class GUI extends JPanel implements ActionListener {
         this.theme = theme;
         // Change backgrounds
         titlePanel.setBackground(theme.getBackground());
+        titleLabel.setForeground(theme.textColor());
         matrixPanel.setBackground(theme.getBackground());
-        leftPanel.setBackground(theme.getBackground());
+        leftPanel.changeTheme(theme);
         rightPanel.setBackground(theme.getBackground());
         bottomPanel.setBackground(theme.getBackground());
         // Change cases

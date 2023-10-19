@@ -56,7 +56,11 @@ public class Main extends JFrame{
         setParameters(true); // Set default options
     }
 
-    public void changeTheme(Theme theme){this.gui.changeTheme(theme);}
+    public void changeTheme(Theme theme){
+        this.setBackground(theme.getBackground());
+        this.menu.changeTheme(theme);
+        this.gui.changeTheme(theme);
+    }
 
     /**
      * **************** *
