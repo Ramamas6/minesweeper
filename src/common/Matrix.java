@@ -1,17 +1,19 @@
 package src.common;
 import java.util.Random;
 
+/**
+ * Matrix of the cases
+ */
 public class Matrix {
-    private boolean [][] cases;
-    private boolean [][] casesDiscovered;
+    private boolean [][] cases; // Main cases table
+    private boolean [][] casesDiscovered; // Cases table for the server (precising if they are already discovered)
     private int dimX = 10;
     private int dimY = 10;
     private int nbMines = 0;
 
     /**
      * Constructor
-     * @param level : level of the game (define dimension and number of mines)
-     *                default: MEDIUM
+     * @param level level of the game (define dimension and number of mines)
      */
     public Matrix(Level level) {
         // Set parameters
@@ -21,12 +23,15 @@ public class Matrix {
         // Creates matrix and place mines
         cases = new boolean[dimX][dimY]; // Initialisé a false par défaut
     }
+    /**
+     * Constructor with default level MEDIUM
+     */
     public Matrix() {this(Level.MEDIUM);}
 
     /**
-     * Place random mines in the matrix
-     * @param x
-     * @param y
+     * Place random mines in the matrix, with none around the specified coordinate
+     * @param x coordinate x
+     * @param y coordinate y
      */
     public void fillRandomly(int x, int y) {
         Random generator = new Random();
@@ -46,7 +51,7 @@ public class Matrix {
     }
 
     /**
-     * Display Matrix
+     * Display the Matrix
      */
     public void display() {
         System.out.print("\n");
@@ -62,8 +67,9 @@ public class Matrix {
 
     /**
      * Compute number of mines around a case
-     * @param x : x coordinate of the case
-     * @param y : y coordinate of the case
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     * @return number of mines around the case
      */
     public int computeMinesNumber(int x, int y) {
         int total = 0;
@@ -87,10 +93,10 @@ public class Matrix {
     }
     /**
      * Restart the matrix for a new online game
-     * @param level
-     * @param dimx
-     * @param dimy
-     * @param minesNumber
+     * @param level level of the game
+     * @param dimx dimension x (width) of the grid
+     * @param dimy dimension y (height) of the grid
+     * @param minesNumber number of mines in the game
      */
     public void newMatrix(Level level, int dimx, int dimy, int minesNumber) {
         this.dimX = dimx;
@@ -110,12 +116,45 @@ public class Matrix {
         this.fillRandomly(x, y);
     }
 
-    public int getDimX() {return this.dimX;} // Return x dimension (for non-squared matrix)
-    public int getDimY() {return this.dimY;} // Return y dimension (for non-squared matrix)
-    public int getMines() {return this.nbMines;} // Return number of mines
-    public boolean[][] getCases() {return this.cases;} // Return the cases
-    public boolean isMine(int i, int j) {return this.cases[i][j];}
-    public boolean isDiscovered(int i, int j) {return this.casesDiscovered[i][j];}
-    public void setDiscovered(int i, int j) {this.casesDiscovered[i][j] = true;}
+    /**
+     * Get the x dimension (width) of the matrix
+     * @return width
+     */
+    public int getDimX() {return this.dimX;}
+    /**
+     * Get the y dimension (height) of the matrix
+     * @return height
+     */
+    public int getDimY() {return this.dimY;}
+    /**
+     * Get number of mines of the matrix
+     * @return number of mines
+     */
+    public int getMines() {return this.nbMines;}
+    /**
+     * Get the cases table of the matrix
+     * @return the cases table
+     */
+    public boolean[][] getCases() {return this.cases;}
+    /**
+     * Get if a case is a mine or not
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     * @return true if the case is a mine, false otherwise
+     */
+    public boolean isMine(int x, int y) {return this.cases[x][y];}
+    /**
+     * Get if the case is already discovered (for the server only)
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     * @return true if the case is already discovered, false otherwise
+     */
+    public boolean isDiscovered(int x, int y) {return this.casesDiscovered[x][y];}
+    /**
+     * Set a case as discovered
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     */
+    public void setDiscovered(int x, int y) {this.casesDiscovered[x][y] = true;}
 
 }

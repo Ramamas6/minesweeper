@@ -245,12 +245,7 @@ public class GUI extends JPanel implements ActionListener {
 
     public void addPlayer(String player) {leftPanel.addPlayer(player);}
     public void removePlayer(String player) {leftPanel.removePlayer(player);}
-
-    /**
-     * 
-     */
-
-    public void showCase(int x, int y, int n) {this.grille[x][y].showCase(n);}
+    
     /**
      * Show case in online mode
      * @param x

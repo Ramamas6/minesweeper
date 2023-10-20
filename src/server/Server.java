@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Server needed to launch an online game
+ */
 public class Server {
     // Connections
     final static int PORT = 10000;
@@ -26,6 +29,9 @@ public class Server {
     private int casesLeft = 0;
     private int alivePlayers = 0;
 
+    /**
+     * Constructor
+     */
     private Server() {
         try {
             // Server creation
@@ -52,10 +58,17 @@ public class Server {
             e.printStackTrace();
         }
     }
+    /**
+     * Automaticaly used to launch the server
+     * @param args not used
+     */
     public static void main (String [] args) {
         System.out.println("Server Started");
         new Server();
     }
+    /**
+     * Function called when a new online game starts
+     */
     public void startGame () {
         // Set first case discovered
         this.gameState = 1;
@@ -81,10 +94,11 @@ public class Server {
         this.matrix.display();
         broadcastAllString("command_start");
     }
-    /** Called when a case is revealed by a player
-     * @param player
-     * @param x
-     * @param y
+    /** 
+     * Function called when a case is revealed by a player
+     * @param player pseudo of the player
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
      * @return true if it was safe, not otherwise
      */
     public boolean caseRevealed(String player, int x, int y) {
@@ -105,38 +119,80 @@ public class Server {
         }
         else return true;
     }
-    public void endGame() {
+    /**
+     * Function called at the end of a game
+     */
+    private void endGame() {
         this.gameState = 0;
         this.broadcastAllString("command_endgame");
     }
+    /**
+     * Remove a player from the server
+     * @param index id of the player in the server
+     */
     public void removeSortie (int index) {sorties.remove(index);}
+    /**
+     * Set the difficulty of the next game (only callable if the game isn't launched)
+     * @param level difficulty aimed
+     */
     public void setDifficulty (Level level) {
         if(this.gameState < 1) {
             currentLevel = level;
             broadcastAllString("command_difficulty_" + level.getLevel());
         }
     }
+    /**
+     * Send the current difficulty of the game
+     * @return current difficulty
+     */
     public Level getDifficulty () {return this.currentLevel;}
-    public int getState() {return this.gameState;}
+    /**
+     * Set the current state of the game
+     * @param state 0 for in preparation, 1 for starting, 2 for currently in game
+     */
     public void setState(int state) {this.gameState = state;}
+    /**
+     * Get the current state of the game
+     * @return 0 for in preparation, 1 for starting, 2 for currently in game
+     */
+    public int getState() {return this.gameState;}
+
 
     /**
      * ********* *
      * BROADCAST *
      * ********* *
      */
+    /**
+     * Broadcast an integer to all players
+     * @param value integer to broadcast
+     */
     public void broadcastAllInt (int value) {
             for (Map.Entry<Integer, DataOutputStream> me : sorties.entrySet())
                 try {me.getValue().writeInt(value);} catch (IOException e) {}        
     }
+    /**
+     * Broadcast an string to all players
+     * @param txt string to broadcast
+     */
     public void broadcastAllString (String txt) {
             for (Map.Entry<Integer, DataOutputStream> me : sorties.entrySet())
                 try {me.getValue().writeUTF(txt);} catch (IOException e) {}    
     }
+    /**
+     * Broadcast an integer to one players
+     * @param value integer to broadcast
+     * @param player (index) id of the player to broadcast
+     */
     public void broadcastInt (int value, int player){
         try {if(sorties.containsKey((Integer) player))
             sorties.get(player).writeInt(value);} catch (IOException e) {}
     }
+    /**
+     * Broadcast an string to all players
+     * @param txt string to broadcast
+     * @param player (index) id of the player to broadcast
+     */
     public void broadcastString (String txt, int player) {
         try {if(sorties.containsKey((Integer) player))
             sorties.get(player).writeUTF(txt);} catch (IOException e) {}

@@ -12,13 +12,25 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
+/**
+ * Graphic case
+ */
 public class Case extends JPanel implements MouseListener {
 
     private static int DIMX;
     private static int DIMY;
+    /**
+     * Resize all the cases
+     * @param dimx dimension x of the cases
+     * @param dimy dimension y of the cases
+     */
     public static void RESIZE(int dimx, int dimy) {DIMX = dimx; DIMY = dimy;}
 
     private static Theme THEME = Theme.DEFAULT;
+    /**
+     * Change the theme of all the cases
+     * @param theme new theme for the cases
+     */
     public static void CHANGETHEME(Theme theme) {THEME = theme;}
 
     private int txtInt = 0;
@@ -26,21 +38,37 @@ public class Case extends JPanel implements MouseListener {
     private int x;
     private int y;
     private boolean isMine = false;
-    private int isClicked = 0; // 0 (unclicked) , 1 (bomb), 2 (don't know), 3 (uncover)
+    private int isClicked = 0; // 0 (unclicked) , 1 (bomb), 2 (don't know), 3 (discover)
     private Color color = new Color(0,0,0);
     BufferedImage image;
     
-    public Case (GUI gui, int i, int j) {
+    /**
+     * Constructor
+     * @param gui Gui linked to the cases
+     * @param x coordinate x of the case in the gui
+     * @param y coordinate y of the case in the gui
+     */
+    public Case (GUI gui, int x, int y) {
         this.gui = gui;
-        x = i;
-        y = j;
+        this.x = x;
+        this.y = y;
         addMouseListener(this); // ajout listener souris
     }
 
+    /**
+     * Get the clicked value of the case
+     * @return 0 for not clicked, 1 for flaged, 2 for questionned, 3 for discovered
+     */
     public int getClicked(){return this.isClicked;}
+    /**
+     * Set this case as a mine
+     */
     public void setMine(){this.isMine = true;}
 
     @Override
+    /**
+     * Repaint the case
+     */
     public void paintComponent(Graphics gc) {
         // Main paint
         super.paintComponent(gc);
@@ -77,6 +105,12 @@ public class Case extends JPanel implements MouseListener {
             gc.drawImage(this.image, dimx, dimy, dim, dim, this);
         }
     }
+    /**
+     * Used to know the real size of a text
+     * @param g Graphics of the paintComponent
+     * @param str string to mesure
+     * @return a rectangle around the text (x0, y0, width, height)
+     */
     private Rectangle getStringBounds(Graphics g, String str)
     {
     Graphics2D g2 = (Graphics2D) g;
@@ -87,7 +121,7 @@ public class Case extends JPanel implements MouseListener {
     }
 
     /**
-     * Reveal the case if it was not set correctly
+     * Reveal the case at the end of a game if it was not set correctly
      * @param win : 1 if the game is won, 0 otherwise
      */
     public void reveal(boolean win){
@@ -108,7 +142,10 @@ public class Case extends JPanel implements MouseListener {
             }
         }
     }
-
+    /**
+     * Show a case
+     * @param n
+     */
     public void showCase(int n) {
         this.isClicked = 3;
         txtInt = n;

@@ -7,6 +7,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class thread, listening one player
+ */
 public class ThreadPlayer implements Runnable {
 
     // Static data
@@ -22,13 +25,25 @@ public class ThreadPlayer implements Runnable {
     private String pseudo = "";
     private boolean alive = true;
 
+    /**
+     * Constructor
+     * @param socket socket connected the the player
+     * @param index id of the player for the server
+     */
     public ThreadPlayer(Socket socket, int index) {
         this.player = socket;
         this.index = index;
     }
 
+    /**
+     * Set the server for the class thread
+     * @param serv server linked to all the threads
+     */
     public static void SETSERV(Server serv) {server = serv;}
 
+    /**
+     * Main thread run
+     */
     public void run () {
         String command = "";
         try {
@@ -94,6 +109,9 @@ public class ThreadPlayer implements Runnable {
         }
     }
 
+    /**
+     * Close the liaisons and close this thread properly (send the information to the server)
+     */
     private void quit() {
         this.run = false;
         server.broadcastString("command_quit", this.index);
