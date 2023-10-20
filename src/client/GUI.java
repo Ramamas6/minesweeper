@@ -8,6 +8,9 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * Client GUI (graphic interface)
+ */
 public class GUI extends JPanel implements ActionListener {
 
     // Main panels
@@ -39,6 +42,11 @@ public class GUI extends JPanel implements ActionListener {
      **************************************************************************
     */
 
+    /**
+     * Constructor
+     * @param main GUI-related Main object
+     * @param minesNumber number of mines of the default level
+     */
     GUI(Main main, int minesNumber) {
         // Get remote objects
         this.main = main;
@@ -61,6 +69,10 @@ public class GUI extends JPanel implements ActionListener {
         // Start timer
     }
 
+    /**
+     * Creates the title panel
+     * @return title panel
+     */
     private JPanel createTitlePanel() {
         JPanel panel = new JPanel();
         titleLabel = new JLabel("Minesweeper");
@@ -70,6 +82,11 @@ public class GUI extends JPanel implements ActionListener {
         return panel;
     }
 
+    /**
+     * NOT USED
+     * Creates the right panel
+     * @return right panel
+     */
     private JPanel createRightPanel () {
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
@@ -80,6 +97,11 @@ public class GUI extends JPanel implements ActionListener {
         panel.setBackground(this.theme.getBackground());
         return panel;
     }
+
+    /**
+     * Creates the bottom panel
+     * @return bottom panel
+     */
     private JPanel createBottomPanel () {
         JPanel panel = new JPanel();
         buttonQuit = new JButton("QUIT");
@@ -99,6 +121,7 @@ public class GUI extends JPanel implements ActionListener {
 
     /**
      * Reset the variables for a new game
+     * @param minesNumber new number of mines
      */
     void newGame(int minesNumber) {
         // MatrixPanel
@@ -114,10 +137,20 @@ public class GUI extends JPanel implements ActionListener {
         }
 
     }
+
+    /**
+     * Show the first case of a new game
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     */
     void newGame(int x, int y) {
         this.grille[x][y].showCase(0);
     }
 
+    /**
+     * Creates the main (central) panel
+     * @return the central panel
+     */
     JPanel createMatrixPanel() {
         // Variables creations
         int dimX = this.main.getDimX();
@@ -140,7 +173,9 @@ public class GUI extends JPanel implements ActionListener {
     }
 
     /**
-     * @return optimum screenSize for a difficulty or [0,0] for full size
+     * Calculates the optimum screenSize for a given difficulty
+     * @param level current level of the game (for width and height of the matrix)
+     * @return optimum screenSize, or [0,0] for full size
      */
     public int[] screenSize(Level level) {
         // Resize all the Case with the optimal size for square
@@ -159,6 +194,9 @@ public class GUI extends JPanel implements ActionListener {
         return ret;
     }
 
+    /**
+     * Display the ranking at the end of an online game
+     */
     public void displayClassement() {
         if(this.main.getOnline() && main.getPlayerNumber() > 1) {
             // Case 2 players
@@ -196,9 +234,6 @@ public class GUI extends JPanel implements ActionListener {
      ******************************************************************************
     */
 
-    /**
-     * Performed actions
-     */
     @Override
     public void actionPerformed(ActionEvent e) {
         // Quit game
@@ -207,7 +242,7 @@ public class GUI extends JPanel implements ActionListener {
 
     /**
      * Change the graphics when switching online
-     * @param isOnline specify wether the game is online or not
+     * @param isOnline true if the game switches online, false if the game switches offline
      */
     public void switchOnline(boolean isOnline) {
         // TO DO : Change menu
@@ -218,14 +253,27 @@ public class GUI extends JPanel implements ActionListener {
         // TO DO : Change right panel
     }
 
+    /**
+     * Change the score of one player
+     * @param player pseudo of the player
+     * @param value new score of the player
+     */
     void changeScore(String player, int value) {this.leftPanel.changeScore(player,value);}
 
+    /**
+     * Called when a player loses (change his alive icon in left panel)
+     * @param player pseudo of the player
+     */
     void loses(String player) {this.leftPanel.loses(player);}
 
     /**
      * FOR CHANGE DISPLAY
      */
 
+    /**
+     * Change the theme of the GUI
+     * @param theme new theme
+     */
     public void changeTheme(Theme theme) {
         this.theme = theme;
         // Change backgrounds
@@ -238,29 +286,72 @@ public class GUI extends JPanel implements ActionListener {
         // Change cases
         Case.CHANGETHEME(theme);
     }
+
+    /**
+     * Get the current theme
+     * @return current theme
+     */
     public Theme getTheme(){return this.theme;}
 
+    /**
+     * Change timer label (in left panel)
+     * @param seconds new time to display
+     */
     public void changeTimer(int seconds) {leftPanel.changeTimer(seconds);}
+
+    /**
+     * Change the pseudo of a player (in left panel)
+     * @param newPseudo new pseudo to display
+     * @param oldPseudo former pseudo to display
+     */
     public void changePlayer(String newPseudo, String oldPseudo) {leftPanel.changePlayer(newPseudo, oldPseudo);}
 
+    /**
+     * Adds a player in the panel (in left panel)
+     * @param player pseudo of the player
+     */
     public void addPlayer(String player) {leftPanel.addPlayer(player);}
+
+    /**
+     * Removes a player from the panel (in left panel)
+     * @param player pseudo of the player
+     */
     public void removePlayer(String player) {leftPanel.removePlayer(player);}
     
     /**
-     * Show case in online mode
-     * @param x
-     * @param y
-     * @param n
+     * Show a case (online mode)
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     * @param n value of the case
      * @param i number of the player who discovered the case
      */
     public void showCase(int x, int y, int n, int i) {this.grille[x][y].showCase(n,i);}
 
+    /**
+     * Get the value of a case
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     * @return the value of a case
+     */
     public int computeMinesNumber(int x, int y) {return main.computeMinesNumber(x, y);}
 
+    /**
+     * Get if the client is currently online
+     * @return true if this client is currently online, false otherwise
+     */
     public boolean getOnline() {return this.main.getOnline();}
 
+    /**
+     * Get whether the client is authorized to click or not
+     * @return true if the client is authorized to click, false otherwise
+     */
     public boolean getAuthorizedClick() {return main.getAuthorizedClick();}
 
+    /**
+     * Adds a value to the number of mines left if it is possible
+     * @param i value to add the the number of mines left
+     * @return the number of mines left the addition was possible, -1 otherwise
+     */
     public int changeBombs(int i) {
         if (this.minesLeft + i >= 0) {
             this.minesLeft += i;
@@ -270,14 +361,39 @@ public class GUI extends JPanel implements ActionListener {
         else return -1;
     }
 
+    /**
+     * Called when the Case x,y is left clicked by the player
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     */
     public void isClicked(int x, int y) {this.main.isClicked(x, y);}
 
-    public void leftClick(int i, int j) {if (this.grille[i][j].getClicked() != 3) this.grille[i][j].leftClick();}
-    public void reveal(int i, int j, boolean win) {if(grille[i][j].getClicked() != 3) grille[i][j].reveal(win);}
-    public void setMine(int i, int j) {grille[i][j].setMine();}
+    /**
+     * Simulates a left click in a case (if it was not already discovered)
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     */
+    public void leftClick(int x, int y) {if (this.grille[x][y].getClicked() != 3) this.grille[x][y].leftClick();}
+
+    /**
+     * Reveal a case at the end of the game if it was not already discovered
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     * @param win true if the game is won, false otherwise
+     */
+    public void reveal(int x, int y, boolean win) {if(grille[x][y].getClicked() != 3) grille[x][y].reveal(win);}
+
+    /**
+     * Set a case as a mine
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     */
+    public void setMine(int x, int y) {grille[x][y].setMine();}
 
     /**
      * Resize all the Case to adapt to the screen
+     * @param size size of the window
+     * @param level current level of the game
      */
     public void redimension(Dimension size, Level level) {
         int x = ((int) size.getWidth() - leftPanel.getWidth() - rightPanel.getWidth()) / level.getDimX();

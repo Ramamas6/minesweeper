@@ -1,5 +1,7 @@
 package src.client;
 
+import src.common.Level;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -16,47 +18,44 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
-import src.common.Level;
 
+/**
+ * Menu object
+ */
 public class Menu extends JMenuBar implements ActionListener {
+
     private Main main;
     private JLabel[] separators = new JLabel[4];
+
     // Online button
     private JButton onlineMenu;
     private JButton onLine;
     private JButton offLine;
+
     // Difficulty
     private JMenu difficultyMenu;
     private List<JMenuItem> difficultiesMenuItem;
     private Level[] lvls = { Level.EASY, Level.MEDIUM, Level.HARD, Level.DIABOLICAL }; // Possible levels
+
     // Settings
     private JMenu settingsMenu;
     private JMenuItem connectionMenu;
     private List<JMenuItem> themesMenuItem;
-    private Theme[] themes = { Theme.DEFAULT, Theme.GOOGLE, Theme.GRAY, Theme.LIGHT, Theme.DARK };
+    private Theme[] themes = { Theme.DEFAULT, Theme.GOOGLE, Theme.GRAY, Theme.LIGHT, Theme.DARK }; // Possible themes
+
     // New game
     private JButton newMenu;
+
     // Player
     private JButton iconUser;
     private JButton menuPseudo;
 
-    public void changeTheme(Theme theme) {
-        this.setBackground(theme.getBackgroundMenu());
-        this.onlineMenu.setForeground(theme.textColor());
-        this.onLine.setForeground(theme.textColor());
-        this.offLine.setForeground(theme.textColor());
-        this.difficultyMenu.setForeground(theme.textColor());
-        this.settingsMenu.setForeground(theme.textColor());
-        this.newMenu.setForeground(theme.textColor());
-        this.menuPseudo.setForeground(theme.textColor());
-        for (int i = 0; i < separators.length; i ++) separators[i].setForeground(theme.textColor());
-        // User picture
-        Color color = theme.getBackgroundMenu();
-        if(color.getBlue() + color.getGreen() + color.getRed() < 100)
-            iconUser.setIcon(new ImageIcon("./assets/user2.png"));
-        else iconUser.setIcon(new ImageIcon("./assets/user.png"));
-    }
 
+
+    /**
+     * Constructor: creates the menu
+     * @param main menu-related Main object
+     */
     public Menu(Main main) {
         this.main = main;
         // Online menu
@@ -141,9 +140,6 @@ public class Menu extends JMenuBar implements ActionListener {
         this.add(menuPseudo);
     }
 
-        /**
-     * Performed actions
-     */
     @Override
     public void actionPerformed(ActionEvent e) {
         // New game
@@ -170,8 +166,29 @@ public class Menu extends JMenuBar implements ActionListener {
     }
 
     /**
+     * Change the theme of the menu
+     * @param theme new theme to display
+     */
+    public void changeTheme(Theme theme) {
+        this.setBackground(theme.getBackgroundMenu());
+        this.onlineMenu.setForeground(theme.textColor());
+        this.onLine.setForeground(theme.textColor());
+        this.offLine.setForeground(theme.textColor());
+        this.difficultyMenu.setForeground(theme.textColor());
+        this.settingsMenu.setForeground(theme.textColor());
+        this.newMenu.setForeground(theme.textColor());
+        this.menuPseudo.setForeground(theme.textColor());
+        for (int i = 0; i < separators.length; i ++) separators[i].setForeground(theme.textColor());
+        // User picture
+        Color color = theme.getBackgroundMenu();
+        if(color.getBlue() + color.getGreen() + color.getRed() < 100)
+            iconUser.setIcon(new ImageIcon("./assets/user2.png"));
+        else iconUser.setIcon(new ImageIcon("./assets/user.png"));
+    }
+
+    /**
      * Change the graphics when switching online
-     * @param isOnline specify wether the game is online or not
+     * @param isOnline true the game switch online, false if the game switch offline
      */
     public void switchOnline(boolean isOnline) {
         // Change switch button
@@ -188,10 +205,17 @@ public class Menu extends JMenuBar implements ActionListener {
         offLine.setBackground(color);
         onLine.setBackground(color);
     }
+
     /**
-     * 
+     * Change the difficulty label
+     * @param level new difficulty to display
      */
     public void changeDifficulty(String level) {difficultyMenu.setText("Difficulty " + level);}
+
+    /**
+     * Change the pseudo label
+     * @param newPseudo new pseudo to display
+     */
     public void changePseudo(String newPseudo) {this.menuPseudo.setText(newPseudo);}
 
 

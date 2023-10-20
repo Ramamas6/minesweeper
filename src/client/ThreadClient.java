@@ -1,21 +1,33 @@
 package src.client;
 
 import src.common.Level;
+
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+/**
+ * Client thread listening to the server
+ */
 public class ThreadClient implements Runnable {
     private Socket serv; // Communication socket
     private DataInputStream entree;
     private Main main;
     private boolean run = true;
 
+    /**
+     * Constructor
+     * @param socket communication socket to the server
+     * @param main Main object to be linked on
+     */
     ThreadClient(Socket socket, Main main) {
         serv = socket;
         this.main = main;
     }
 
+    /**
+     * Thread main run
+     */
     public void run () {
         String txt;
         try {
@@ -116,6 +128,9 @@ public class ThreadClient implements Runnable {
         } catch(IOException e){this.quit();}
     }
 
+    /**
+     * Close the liaisons and close this thread properly (send the information to the main)
+     */
     private void quit() {
         this.run = false;
         this.main.switchOffline(false);

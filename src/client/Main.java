@@ -20,6 +20,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.Timer;
 
+/**
+ * Main client class
+ */
 public class Main extends JFrame{
 
     // General
@@ -33,7 +36,6 @@ public class Main extends JFrame{
     private boolean authorizedClick = true; // Wether click on cases is othorized
     private Level currentLevel = Level.MEDIUM;
     private int casesLeft; // Number of non-mines left
-    
     private int seconds = 0; // Timer
 
     // Online mode
@@ -44,7 +46,16 @@ public class Main extends JFrame{
     private boolean online = false;
     private Map<String, Player> players = new HashMap<String, Player>();
 
+    /**
+     * Automaticaly used to launch the client
+     * @param args you can pass the pseudo of the player in the first case
+     */
     public static void main(String[] args) {if (args.length > 0) new Main(args[0]);else new Main("");}
+
+    /**
+     * Constructor
+     * @param s pseudo of the player - Default: ""
+     */
     private Main(String s) {
         this.timer(); // Start timer
         this.matrix = new Matrix();
@@ -56,6 +67,10 @@ public class Main extends JFrame{
         setParameters(true); // Set default options
     }
 
+    /**
+     * Change the theme of the client
+     * @param theme new theme
+     */
     public void changeTheme(Theme theme){
         this.setBackground(theme.getBackground());
         this.menu.changeTheme(theme);
@@ -81,9 +96,10 @@ public class Main extends JFrame{
             this.port = Integer.parseInt(portField.getText());
         }
     }
+
     /**
-     * Called when the button connection is pressed to connect to the server
-     * Try to connect, or launch a timer to try again every seconds if the connection failed
+     * Called when the button connection is pressed to connect to the server.
+     * Try to connect, or launch a timer to try again every seconds if the connection failed.
      */
     public void switchOnline() {
         if(!tryConnect()) {
@@ -92,6 +108,7 @@ public class Main extends JFrame{
             }; new Timer(1000, tryConnection).start();
         }
     }
+
     /**
      * Try to connect to the server
      * @return wether the connection succed or not
@@ -110,8 +127,10 @@ public class Main extends JFrame{
             return true;
         } catch (IOException e) {return false;}
     }
+
     /**
-     * Called when the button connection is pressed to disconnect to the server
+     * Called when the button connection is pressed to disconnect to the server - Default: true
+     * @param broadcastServer whether to broadcast to the server that the client disconected
      */
     public void switchOffline(boolean broadcastServer) {
         this.online = false;
@@ -123,8 +142,23 @@ public class Main extends JFrame{
         gui.switchOnline(false);
         menu.switchOnline(false);
     }
+
+    /**
+     * Called when the button connection is pressed to disconnect to the server.
+     * Broadcast to the server that the client disconected
+     */
     public void switchOffline(){this.switchOffline(true);}
+
+    /**
+     * Broadcast a string to the server
+     * @param txt string to broadcast
+     */
     public void broadCastString(String txt){try{sortie.writeUTF(txt);}catch(IOException e){e.printStackTrace();}}
+
+    /**
+     * Broadcast an integer to the server
+     * @param value integer to broadcast
+     */
     public void broadCastInt(int value){try{sortie.writeInt(value);}catch(IOException e){e.printStackTrace();}}
 
     /**
@@ -134,8 +168,8 @@ public class Main extends JFrame{
     **/
 
     /**
-     * Set general parameters
-     * @param firstStart true only when Main is created
+     * Set general graphic parameters
+     * @param firstStart true only at the creation - Default: false
      */
     private void setParameters(boolean firstStart) {
         if (firstStart) {
@@ -148,9 +182,14 @@ public class Main extends JFrame{
         if (size[0] == 0) setExtendedState(JFrame.MAXIMIZED_BOTH); else setSize(size[0], size[1]);
         setVisible(true);
     }
-    private void setParameters() {this.setParameters(false);}
+
     /**
-     * Quit the game and close the windows
+     * Set general graphic parameters
+     */
+    private void setParameters() {this.setParameters(false);}
+
+    /**
+     * Quit the game, close the windows and stop the client
      */
     public void quit() {
         System.out.println("Bye-Bye");
@@ -219,10 +258,11 @@ public class Main extends JFrame{
             else k ++;
         }
         this.gui.showCase(x,y,n,i); // Display the case
-        this.players.get(player).addScore1(n); // Actualise 1rst score
-        this.players.get(player).addScore2(1); // Actualise 2nd score (for equalities)
-        this.gui.changeScore(player,this.players.get(player).getScore1()); // Actualise 1rst score in gui
+        this.players.get(player).addScore(n); // Actualise 1rst score
+        this.players.get(player).addTieBreakScore(1); // Actualise 2nd score (for equalities)
+        this.gui.changeScore(player,this.players.get(player).getScore()); // Actualise 1rst score in gui
     }
+
     /**
      * Called on online mode, when a player loses
      * @param player pseudo of the player
@@ -232,8 +272,9 @@ public class Main extends JFrame{
         this.gui.loses(player);
     }
 
-
-
+    /**
+     * Start the timer (called only at the creation)
+     */
     private void timer() {
         ActionListener taskPerformer = new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
@@ -245,7 +286,9 @@ public class Main extends JFrame{
     }
 
     /**
-     * Called when "new game" is pressed
+     * Called when the "new game" button is pressed.
+     * Solo: start a new game with the same difficulty
+     * Online: broadcast to the server the beginning of a new game (if one insn't already in progress)
      */
     public void newGame() {
         // Case Offline
@@ -264,8 +307,11 @@ public class Main extends JFrame{
     }
 
     /**
-     * Start a new Online game
-     */ 
+     * Creates (prepares) a new Online game
+     * @param dimx dimension x (width) of the matrix
+     * @param dimy dimension y (height) of the matrix
+     * @param minesNumber number of mines
+     */
     public void newGame(int dimx, int dimy, int minesNumber) {
         this.authorizedClick = false;
         this.gameStarted = 2;
@@ -276,6 +322,12 @@ public class Main extends JFrame{
         this.setParameters();
     }
 
+    /**
+     * Change the current difficulty.
+     * Solo: start imediately a new game with this difficulty
+     * Online: set the difficulty for the next game (if one insn't already in progress)
+     * @param level new level
+     */
     public void changeDifficulty(Level level) {
         // Case Offline
         if(!this.online) {
@@ -293,8 +345,8 @@ public class Main extends JFrame{
         } else {menu.changeDifficulty(this.currentLevel.getLevel());} // Do nothing : online, but game already started
     }
 
-        /**
-     * Start game with a 0 in the first clicked case
+    /**
+     * Starts a game with a 0 in the first clicked case
      * @param x coordinate x of the first case
      * @param y coordinate y of the first case
      */
@@ -322,7 +374,7 @@ public class Main extends JFrame{
     }
 
     /**
-     * Called when the game end (to reveal all mines)
+     * Called when the game end (to reveal all mines and display rankings in online)
      */
     public void endGame() {
         this.gameStarted = 0;
@@ -332,11 +384,21 @@ public class Main extends JFrame{
             for(int j = 0; j < this.matrix.getDimY(); j ++)
                 this.gui.reveal(i,j,casesLeft == 0);
         // Case online -> display classement
-        this.gui.displayClassement();
+        if(this.online) this.gui.displayClassement();
     }
 
+    /**
+     * Get the value of a case
+     * @param x coordinate x of the case
+     * @param y coordinate y of the case
+     * @return the value of a case
+     */
     public int computeMinesNumber(int x, int y) {return this.matrix.computeMinesNumber(x, y);}
 
+    /**
+     * Called when the used clicks on the change pseudo button
+     * Does not work during an online game
+     */
     public void changePseudo() {
         // Case offline
         if(!this.online) {
@@ -367,31 +429,96 @@ public class Main extends JFrame{
      * ***************** *
      */
 
+    /**
+     * Get the pseudo of this client
+     * @return pseudo
+     */
     public String getPseudo() {return this.pseudo;}
-    public void setPseudo(String txt) {this.pseudo = txt;}
 
+    /**
+     * Set the pseudo of this client
+     * @param pseudo new pseudo to set
+     */
+    public void setPseudo(String pseudo) {this.pseudo = pseudo;}
+
+    /**
+     * Get if this client is currently online
+     * @return true if this client is currently online, false otherwise
+     */
     public boolean getOnline() {return this.online;}
 
+    /**
+     * Get whether this client is authorized to click or not
+     * @return true if this client is authorized to click, false otherwise
+     */
     public boolean getAuthorizedClick() {return this.authorizedClick;}
 
-    public void addPlayer(String txt) {
-        this.players.put(txt, new Player(txt));
-        this.gui.addPlayer(txt);
+    /**
+     * Adds a player (online game only)
+     * @param pseudo pseudo of the player to add
+     */
+    public void addPlayer(String pseudo) {
+        this.players.put(pseudo, new Player(pseudo));
+        this.gui.addPlayer(pseudo);
     }
-    public boolean containsPlayer(String txt) {return this.players.containsKey(txt);}
-    public void removePlayer(String txt) {
-        this.players.remove(txt);
-        if(this.online) this.gui.removePlayer(txt);
+
+    /**
+     * Check if a pseudo is in the list of players (online game only)
+     * @param pseudo pseudo to search
+     * @return true if the pseudo is in the list of players, false otherwise
+     */
+    public boolean containsPlayer(String pseudo) {return this.players.containsKey(pseudo);}
+
+    /**
+     * Remove a player from the list of players (online game only)
+     * @param pseudo pseudo of the player to be removed
+     */
+    public void removePlayer(String pseudo) {
+        this.players.remove(pseudo);
+        if(this.online) this.gui.removePlayer(pseudo);
     }
-    public Player getPlayer(String txt) {return this.players.get(txt);}
+
+    /**
+     * Get a player from the list of players (online game only)
+     * @param pseudo pseudo of the player
+     * @return the player found
+     */
+    public Player getPlayer(String pseudo) {return this.players.get(pseudo);}
+
+    /**
+     * Get a list of all the current players (online game only)
+     * @return all the players
+     */
     public ArrayList<Player> getAllPlayers() {return new ArrayList<>(this.players.values());}
+
+    /**
+     * Get the current number of players (online game only)
+     * @return current number of players
+     */
     public int getPlayerNumber() {return this.players.size();}
 
+    /**
+     * Get the dimension x (width) of the matrix
+     * @return width of the matrix
+     */
     public int getDimX() {return this.matrix.getDimX();}
+
+    /**
+     * Get the dimension y (height) of the matrix
+     * @return height of the matrix
+     */
     public int getDimY() {return this.matrix.getDimY();}
 
+    /**
+     * Get the current state of the game
+     * @return 0 for not started, 1 for started in solo or in preparation online, 2 for started online
+     */
     public int getGameState() {return this.gameStarted;}
 
+    /**
+     * Get the height of the menu
+     * @return height of the menu
+     */
     public int getMenuHeight() {return this.menu.getHeight();}
 
 }

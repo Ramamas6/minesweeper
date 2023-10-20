@@ -11,9 +11,13 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+/**
+ * Left Panel object
+ */
 public class LeftPanel extends JPanel {
 
-    private GridBagLayout gridBagLayout ;
+    // Layouts
+    private GridBagLayout gridBagLayout;
     private GridBagConstraints cp = new GridBagConstraints(); // Grid constraint for left panel
     private int cFlag; // gridy after the game part
 
@@ -30,6 +34,10 @@ public class LeftPanel extends JPanel {
     private Map<String, JLabel> scoreLabels = new HashMap<String, JLabel>(); // Scores of players (left panel)
     private Map<String, JLabel> aliveLabels = new HashMap<String, JLabel>(); // Icon of players (left panel)
 
+    /**
+     * Constructor (creates the panel)
+     * @param background background color
+     */
     public LeftPanel(Color background) {
         this.gridBagLayout = new GridBagLayout();
         this.setLayout(this.gridBagLayout);
@@ -76,9 +84,22 @@ public class LeftPanel extends JPanel {
         this.setBackground(background);
     }
 
+    /**
+     * Change timer label
+     * @param seconds new time to display
+     */
     public void changeTimer(int seconds) {this.timerLabel.setText(String.valueOf(seconds));}
+
+    /**
+     * Change mines number label
+     * @param minesLeft new mines number to display
+     */
     public void changeMinesLabel(int minesLeft) {this.minesLabel.setText(String.valueOf(minesLeft));}
 
+    /**
+     * Change the graphics when switching online
+     * @param isOnline true the game switch online, false if the game switch offline
+     */
     public void switchOnline(boolean isOnline) {
         // Case offline
         if(!isOnline) {
@@ -104,6 +125,10 @@ public class LeftPanel extends JPanel {
         }
     }
 
+    /**
+     * Change the theme of the panel
+     * @param theme new theme to display
+     */
     public void changeTheme(Theme theme) {
         this.gameText.setForeground(theme.textColor());
         this.timerText.setForeground(theme.textColor());
@@ -118,20 +143,35 @@ public class LeftPanel extends JPanel {
      * ONLINE GAMES
      */
 
-    /** Reset the players variables for an online game
+    /**
+     * Reset the players variables for a new online game
      */
     public void newGame() {
         for (Map.Entry<String,JLabel> entry : scoreLabels.entrySet()) entry.getValue().setText("0");
         for (Map.Entry<String,JLabel> entry : aliveLabels.entrySet()) entry.getValue().setIcon(new ImageIcon("./assets/void.png"));
     }
 
+    /**
+     * Change the score of one player
+     * @param player pseudo of the aimed player
+     * @param value new score of the player
+     */
     public void changeScore(String player, int value) {
         this.scoreLabels.get(player).setText(String.valueOf(value));
         // TODO : change the order
     }
 
+    /**
+     * Called when a player loses the game (changes his alive icon)
+     * @param player pseudo of the player
+     */
     public void loses(String player) {this.aliveLabels.get(player).setIcon(new ImageIcon("./assets/skull.png"));}
 
+    /**
+     * Change the pseudo of a player
+     * @param newPseudo new pseudo to display
+     * @param oldPseudo former pseudo to display
+     */
     public void changePlayer(String newPseudo, String oldPseudo) {
         this.playerLabels.put(newPseudo, this.playerLabels.remove(oldPseudo)); // Change the key for player
         this.scoreLabels.put(newPseudo, this.scoreLabels.remove(oldPseudo)); // Change the key for score
@@ -139,6 +179,10 @@ public class LeftPanel extends JPanel {
         this.playerLabels.get(newPseudo).setText(newPseudo); // Change the text
     }
 
+    /**
+     * Adds a player in the panel
+     * @param player pseudo of the player
+     */
     public void addPlayer(String player) {
         cp.gridy = this.cFlag + this.playerLabels.size() + 1;
         // Life label
@@ -163,6 +207,10 @@ public class LeftPanel extends JPanel {
         this.repaint();
     }
 
+    /**
+     * Removes a player from the panel
+     * @param player pseudo of the player
+     */
     public void removePlayer(String player) {
         // Remove the player
         this.remove(this.playerLabels.get(player));

@@ -17,22 +17,12 @@ import javax.swing.JPanel;
  */
 public class Case extends JPanel implements MouseListener {
 
+    // Static variables
     private static int DIMX;
     private static int DIMY;
-    /**
-     * Resize all the cases
-     * @param dimx dimension x of the cases
-     * @param dimy dimension y of the cases
-     */
-    public static void RESIZE(int dimx, int dimy) {DIMX = dimx; DIMY = dimy;}
-
     private static Theme THEME = Theme.DEFAULT;
-    /**
-     * Change the theme of all the cases
-     * @param theme new theme for the cases
-     */
-    public static void CHANGETHEME(Theme theme) {THEME = theme;}
 
+    // private variables
     private int txtInt = 0;
     private GUI gui;
     private int x;
@@ -40,7 +30,7 @@ public class Case extends JPanel implements MouseListener {
     private boolean isMine = false;
     private int isClicked = 0; // 0 (unclicked) , 1 (bomb), 2 (don't know), 3 (discover)
     private Color color = new Color(0,0,0);
-    BufferedImage image;
+    private BufferedImage image;
     
     /**
      * Constructor
@@ -56,10 +46,24 @@ public class Case extends JPanel implements MouseListener {
     }
 
     /**
+     * Resize all the cases
+     * @param dimx dimension x of the cases
+     * @param dimy dimension y of the cases
+     */
+    public static void RESIZE(int dimx, int dimy) {DIMX = dimx; DIMY = dimy;}
+
+    /**
+     * Change the theme of all the cases
+     * @param theme new theme for the cases
+     */
+    public static void CHANGETHEME(Theme theme) {THEME = theme;}
+
+    /**
      * Get the clicked value of the case
      * @return 0 for not clicked, 1 for flaged, 2 for questionned, 3 for discovered
      */
     public int getClicked(){return this.isClicked;}
+
     /**
      * Set this case as a mine
      */
@@ -105,6 +109,7 @@ public class Case extends JPanel implements MouseListener {
             gc.drawImage(this.image, dimx, dimy, dim, dim, this);
         }
     }
+
     /**
      * Used to know the real size of a text
      * @param g Graphics of the paintComponent
@@ -142,22 +147,32 @@ public class Case extends JPanel implements MouseListener {
             }
         }
     }
+    
     /**
-     * Show a case
-     * @param n
+     * Display a case
+     * @param n value of the case
      */
     public void showCase(int n) {
         this.isClicked = 3;
         txtInt = n;
         repaint();
     }
+
+    /**
+     * Display a case (online mode)
+     * @param n value of the case
+     * @param i id of the player who discovered the case
+     */
     public void showCase(int n, int i) {
         this.color = THEME.getNumber(i);
-        this.isClicked = 3;
-        txtInt = n;
-        repaint();
+        this.showCase(n);
     }
 
+    /**
+     * Called when the player left click the case
+     * In solo: reveal the case
+     * Online: send the information to the server
+     */
     public void leftClick() {
         if(!this.gui.getOnline()) {
             if (isClicked == 1) gui.changeBombs(1);
@@ -175,6 +190,10 @@ public class Case extends JPanel implements MouseListener {
         }
     }
 
+    /**
+     * Called when the player right click the case
+     * Set a flag, question, or unset
+     */
     public void rightClick() {
         // Change isClicked
         if (isClicked == 0) {
@@ -194,20 +213,40 @@ public class Case extends JPanel implements MouseListener {
         }
     }
 
+
     @Override
-    public void mouseClicked(MouseEvent me) {}
-    @Override
+    /**
+     * Event taken into account
+     */
     public void mousePressed(MouseEvent me) {
         if (this.gui.getAuthorizedClick() && isClicked != 3) {
             if(me.getButton() == MouseEvent.BUTTON1) {leftClick();}
             if(me.getButton() == MouseEvent.BUTTON3) {rightClick();}
         }
     }
+
     @Override
+    /**
+     * Not used
+     */
+    public void mouseClicked(MouseEvent me) {}
+
+    @Override
+    /**
+     * Not used
+     */
     public void mouseReleased(MouseEvent e) {}
+
     @Override
+    /**
+     * Not used
+     */
     public void mouseEntered(MouseEvent e) {}
+
     @Override
+    /**
+     * Not used
+     */
     public void mouseExited(MouseEvent e) {}
 
 }
