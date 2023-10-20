@@ -36,25 +36,30 @@ public class LeftPanel extends JPanel {
         // Game
         cp.gridx = 0;
         cp.gridy = 0;
-        gameText = new JLabel("Game:");
-        gameText.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+        cp.gridwidth = 1;
+        gameText = new JLabel(" Game:");
+        gameText.setFont(new Font("Comic Sans MS", Font.BOLD, 18));
         this.add(gameText, cp);
             // Time
             cp.gridy ++;
             cp.gridwidth = 2;
-            timerText = new JLabel("Time: ");
+            timerText = new JLabel(new ImageIcon("./assets/chrono.png"));
+            //timerText = new JLabel("Time: ");
             this.add(timerText, cp);
             cp.gridwidth = 1;
             cp.gridx = 2;
             timerLabel = new JLabel("0");
+            timerLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 16));
             this.add(timerLabel, cp);
             // Mines
             cp.gridy ++;
             cp.gridwidth = 2;
             cp.gridx = 0;
-            minesText = new JLabel("Mines left: ");
+            minesText = new JLabel(new ImageIcon("./assets/mines.png"));
+            //minesText = new JLabel("Mines left: ");
             this.add(minesText, cp);
             minesLabel = new JLabel("0");
+            minesLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 16));
             cp.gridwidth = 1;
             cp.gridx = 2;
             this.add(minesLabel, cp);
@@ -67,7 +72,7 @@ public class LeftPanel extends JPanel {
         cp.gridy ++;
         this.cFlag = cp.gridy;
         this.playerPanel = new JLabel("Players:");
-        this.playerPanel.setFont(new Font("Comic Sans MS", Font.BOLD, 14));
+        this.playerPanel.setFont(new Font("Comic Sans MS", Font.BOLD, 18));
         this.setBackground(background);
     }
 
@@ -91,7 +96,7 @@ public class LeftPanel extends JPanel {
         }
         // Case online
         else {
-            cp.gridwidth = 2;
+            cp.gridwidth = 1;
             cp.gridy = this.cFlag;
             cp.gridx = 0;
             this.add(this.playerPanel, cp);
@@ -144,11 +149,13 @@ public class LeftPanel extends JPanel {
         // Player label
         cp.gridx = 1;
         JLabel pLabel = new JLabel(player + " ");
+        pLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 16));
         this.playerLabels.put(player, pLabel);
         this.add(this.playerLabels.get(player), cp);
         // Score label
         cp.gridx = 2;
         JLabel sLabel = new JLabel("0");
+        sLabel.setFont(new Font("Comic Sans MS", Font.BOLD, 16));
         this.scoreLabels.put(player, sLabel);
         this.add(this.scoreLabels.get(player), cp);
         // End: display

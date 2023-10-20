@@ -88,8 +88,9 @@ public class Matrix {
     /**
      * Restart the matrix for a new online game
      * @param level
-     * @param x
-     * @param y
+     * @param dimx
+     * @param dimy
+     * @param minesNumber
      */
     public void newMatrix(Level level, int dimx, int dimy, int minesNumber) {
         this.dimX = dimx;

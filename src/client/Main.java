@@ -212,7 +212,13 @@ public class Main extends JFrame{
      * @param n value of the case
      */
     public void isClicked(String player, int x, int y, int n) {
-        this.showCase(x,y,n); // Display the case
+        int i = 0;
+        int k = 0;
+        for (Map.Entry<String, Player> entry : players.entrySet()) {
+            if(entry.getKey().equals(player)) i = k;
+            else k ++;
+        }
+        this.gui.showCase(x,y,n,i); // Display the case
         this.players.get(player).addScore1(n); // Actualise 1rst score
         this.players.get(player).addScore2(1); // Actualise 2nd score (for equalities)
         this.gui.changeScore(player,this.players.get(player).getScore1()); // Actualise 1rst score in gui
@@ -330,8 +336,6 @@ public class Main extends JFrame{
     }
 
     public int computeMinesNumber(int x, int y) {return this.matrix.computeMinesNumber(x, y);}
-
-    private void showCase(int x, int y, int n) {this.gui.showCase(x,y,n);}
 
     public void changePseudo() {
         // Case offline

@@ -251,6 +251,14 @@ public class GUI extends JPanel implements ActionListener {
      */
 
     public void showCase(int x, int y, int n) {this.grille[x][y].showCase(n);}
+    /**
+     * Show case in online mode
+     * @param x
+     * @param y
+     * @param n
+     * @param i number of the player who discovered the case
+     */
+    public void showCase(int x, int y, int n, int i) {this.grille[x][y].showCase(n,i);}
 
     public int computeMinesNumber(int x, int y) {return main.computeMinesNumber(x, y);}
 

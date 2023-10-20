@@ -44,7 +44,7 @@ public class Player {
     /**
      * @return text to print in the endgame box with more than 2 players
      */
-    public String display() {return this.pseudo + " (" + (this.alive ? "alive":"dead") + ") with " + this.score1 + " points (" + this.score2 + "sub-points)";}
+    public String display() {return this.pseudo + " (" + (this.alive ? "alive":"dead") + ") with " + this.score1 + " points (" + this.score2 + " sub-points)";}
 
     /**
      * Used to print at end of game

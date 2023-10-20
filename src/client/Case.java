@@ -27,6 +27,7 @@ public class Case extends JPanel implements MouseListener {
     private int y;
     private boolean isMine = false;
     private int isClicked = 0; // 0 (unclicked) , 1 (bomb), 2 (don't know), 3 (uncover)
+    private Color color = new Color(0,0,0);
     BufferedImage image;
     
     public Case (GUI gui, int i, int j) {
@@ -59,7 +60,8 @@ public class Case extends JPanel implements MouseListener {
         // Draw text (case discovered but not mine)
         if (isClicked == 3 && !isMine) {
             gc.setFont(new Font("TimesRoman", Font.PLAIN, getHeight()));
-            gc.setColor(THEME.getNumber(txtInt));
+            if(gui.getOnline()) gc.setColor(this.color);
+            else gc.setColor(THEME.getNumber(txtInt));
             String txt = (txtInt == 0 ? " ":String.valueOf(txtInt));
             int textSize = gc.getFont().getSize();
             int textHeight = (int) getStringBounds(gc, txt).getHeight();
@@ -108,6 +110,12 @@ public class Case extends JPanel implements MouseListener {
     }
 
     public void showCase(int n) {
+        this.isClicked = 3;
+        txtInt = n;
+        repaint();
+    }
+    public void showCase(int n, int i) {
+        this.color = THEME.getNumber(i);
         this.isClicked = 3;
         txtInt = n;
         repaint();
